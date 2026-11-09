@@ -10,19 +10,19 @@ import NotFound from "@/pages/NotFound";
 // Each page loads on first visit, so the sign-in screen stays small.
 // Pages from the first version live in src/components; each moves to src/pages as it is rebuilt.
 const pages = {
-  "/": lazy(() => import("@/components/Dashboards/Dashboard")),
-  "/games": lazy(() => import("@/components/Gaming/Games/Games")),
-  "/daily-rewards": lazy(() => import("@/components/Gaming/Daily-Rewards/DailyRewards")),
+  "/": lazy(() => import("@/features/dashboard/DashboardPage")),
+  "/games": lazy(() => import("@/features/games/GamesPage")),
+  "/daily-rewards": lazy(() => import("@/features/rewards/DailyRewardsPage")),
   "/missions": lazy(() => import("@/components/Gaming/Missions/Missions")),
-  "/epic-clips": lazy(() => import("@/components/Gaming/Epic-Clips/EpicClips")),
-  "/strix-pass": lazy(() => import("@/components/Gaming/Strix-Pass/StrixPass")),
+  "/epic-clips": lazy(() => import("@/features/clips/EpicClipsPage")),
+  "/strix-pass": lazy(() => import("@/features/rewards/StrixPassPage")),
   "/tournaments": lazy(() => import("@/components/Gaming/Tournaments/Tournaments")),
   "/players": lazy(() => import("@/components/User/Players/Players")),
   "/channels": lazy(() => import("@/components/User/Channels-Chats/Channels")),
   "/sale-items": lazy(() => import("@/components/Shop&Support/Sale-Items/SaleItems")),
   "/game-topup": lazy(() => import("@/components/Shop&Support/Game-Topup/GameTopup")),
   "/support": lazy(() => import("@/components/Shop&Support/Customer-Support/Customer")),
-  "/settings": lazy(() => import("@/components/Shop&Support/Settings/Settings")),
+  "/settings": lazy(() => import("@/features/settings/SettingsPage")),
 };
 
 // The permission for each page comes from the same list as the sidebar

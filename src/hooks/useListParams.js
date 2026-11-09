@@ -29,10 +29,3 @@ export function useListParams(defaults = {}) {
 
   return { page, get, set, setPage: (value) => set({ page: value > 1 ? value : "" }) };
 }
-
-// Normalises the backend's { data, pagination: { total, page_limit, current_page } }
-export function pageInfo(response) {
-  const total = response?.pagination?.total ?? response?.data?.length ?? 0;
-  const limit = response?.pagination?.page_limit || total || 1;
-  return { total, totalPages: Math.max(1, Math.ceil(total / limit)) };
-}

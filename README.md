@@ -31,20 +31,24 @@ npm run dev             # http://localhost:3000
 ```
 src/
   app/store.js           Redux store
-  lib/api.js             API client (RTK Query) and error messages
+  lib/api.js             API client (RTK Query), list and form helpers, error messages
+  lib/format.js          Numbers, money and dates
   config/navigation.js   Pages, icons and permissions
-  features/auth/         Sign-in, session, permission guards
+  router.jsx             Routes; each page loads on first visit
+  features/<area>/       One folder per area: its API endpoints, page and parts
+                         (auth, dashboard, games, rewards, clips, settings, …)
   layouts/               App shell: sidebar and top bar
   components/ui/         shadcn/ui primitives
-  components/common/     DataTable, PageHeader, StatCard, ConfirmDialog, …
+  components/common/     DataTable, PageHeader, StatCard, ConfirmDialog, FormField, …
   hooks/                 useListParams (page/search in the URL), useDebouncedValue
-  pages/                 Rebuilt pages, one folder per area
-  components/<Area>/     Pages from the first version, moving to pages/ one by one
+  pages/                 Not found and no access
+  components/<Area>/     Pages from the first version, being rebuilt into features/
 ```
 
 ## Conventions
 
 - Lists keep their page, search and filters in the URL through `useListParams`.
 - Ask before anything destructive or irreversible with `ConfirmDialog`.
+- Forms show the server's field errors next to each field with `FormField` and `fieldErrors()`; other failures appear as a toast automatically.
 - Never put secrets in this app: everything in `VITE_*` ships to the browser.
 - Admin sessions last 12 hours. Signing out revokes the token on the server.

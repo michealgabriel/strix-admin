@@ -32,6 +32,9 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
+    changePassword: build.mutation({
+      query: (body) => ({ url: "/auth/admin/password", method: "PUT", body }),
+    }),
     logout: build.mutation({
       query: () => ({ url: "/auth/logout" }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
@@ -48,4 +51,4 @@ export const authApi = api.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useMeQuery, useLogoutMutation } = authApi;
+export const { useLoginMutation, useMeQuery, useLogoutMutation, useChangePasswordMutation } = authApi;

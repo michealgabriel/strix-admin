@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet } from "react-router";
 import { useSelector } from "react-redux";
-import { LogOut, Menu, Monitor, Moon, Sun } from "lucide-react";
+import { KeyRound, LogOut, Menu, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,6 +18,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { selectAdmin } from "@/features/auth/authSlice";
 import { useLogoutMutation } from "@/features/auth/authApi";
+import ChangePasswordDialog from "@/features/auth/ChangePasswordDialog";
 import Sidebar from "./Sidebar";
 
 function Logo() {
@@ -32,6 +33,7 @@ function AccountMenu() {
   const admin = useSelector(selectAdmin);
   const [logout, { isLoading }] = useLogoutMutation();
   const { theme, setTheme } = useTheme();
+  const [changingPassword, setChangingPassword] = useState(false);
   const initial = (admin?.name || admin?.email || "A").charAt(0).toUpperCase();
 
   return (
@@ -65,10 +67,14 @@ function AccountMenu() {
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setChangingPassword(true)}>
+          <KeyRound /> Change password
+        </DropdownMenuItem>
         <DropdownMenuItem disabled={isLoading} onSelect={() => logout()}>
           <LogOut /> Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ChangePasswordDialog open={changingPassword} onOpenChange={setChangingPassword} />
     </DropdownMenu>
   );
 }
