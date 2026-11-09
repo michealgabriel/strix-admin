@@ -1,0 +1,278 @@
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  overflow: scroll;
+}
+
+/* Daily Mission Component */
+.dailyMission {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dailyMission h2 {
+  color: #4caf50;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.dailyMission p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Power Missions Section */
+.powerMissions {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.powerMissions h2 {
+  color: #333;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.missionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.missionCard {
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.missionCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  opacity: 0.9;
+  z-index: -1;
+}
+
+.missionCard.green {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+}
+.missionCard.orange {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+.missionCard.purple {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+.missionCard.pink {
+  background: linear-gradient(135deg, #e91e63, #c2185b);
+}
+.missionCard.blue {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+.missionCard.red {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.missionObjective {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.missionReward {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.starIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+/* Next Power Mission Form */
+.nextMissionForm {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.formTitle {
+  color: #333;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.missionFormContainer {
+  margin-bottom: 20px;
+}
+
+.formSet {
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.formSetNumber {
+  position: absolute;
+  top: -10px;
+  left: 15px;
+  background: white;
+  padding: 0 10px;
+  color: #666;
+  font-weight: bold;
+}
+
+.deleteFieldBtn {
+  position: absolute;
+  top: -10px;
+  right: 15px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.deleteFieldBtn:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.formRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.rewardInput {
+  position: relative;
+}
+
+.rewardInput::before {
+  content: "⭐"; /* Using emoji directly in CSS for simplicity */
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+}
+
+.rewardInput input {
+  padding-left: 35px;
+}
+
+/* Buttons */
+.buttonContainer {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btnPrimary {
+  background: #4caf50;
+  color: white;
+}
+
+.btnSecondary {
+  background: #2196f3;
+  color: white;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btnPrimary:hover {
+  background: #45a049;
+}
+
+.btnSecondary:hover {
+  background: #1976d2;
+}
+
+.errorMessage {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  /* display: none; */ /* Managed by React state */
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    flex-direction: column;
+  }
+
+  .formGroup {
+    min-width: auto;
+  }
+}

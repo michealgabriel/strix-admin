@@ -1,0 +1,287 @@
+.dashboard {
+  padding: 1rem;
+  margin: 0 auto;
+  overflow: scroll;
+  width: 100%;
+}
+
+/* ------------------- */
+/* ANALYTICS STYLES */
+/* ------------------- */
+.Aicons {
+  color: #029328;
+}
+.iconDiv {
+  width: 100%;
+  text-align: right;
+}
+.analyticsContainer {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.analyticsDiv {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 2rem;
+  width: 15rem;
+  height: 8rem;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  background-color: #ffffff;
+}
+.analyticsDiv2 {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 15rem;
+  height: 8rem;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.7rem;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  background-color: #ffffff;
+}
+.analyticsP {
+  font-size: 0.8rem;
+  color: #acacac;
+}
+.analyticsP2 {
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 700;
+}
+.numberWrapper {
+  position: relative;
+  display: inline-block;
+}
+.spanAnalP2 {
+  position: absolute;
+  top: -8px;
+  right: -75px;
+  font-size: 10px;
+  color: gray;
+}
+
+/* ------------------- */
+/* PLAYERS STYLES */
+/* ------------------- */
+.playersDiv {
+  margin: 2rem 0;
+}
+.playersNav,
+.genresNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 15px 20px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.players,
+.genres {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 250px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #029328;
+  box-shadow: 0 0 0 3px rgba(29, 249, 22, 0.1);
+}
+
+.genreBtns {
+  display: flex;
+  gap: 8px;
+}
+
+/* Player/Genre Details (Table-like structure) */
+.playersDetails,
+.genresDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pDetails,
+.gDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.pHeaders,
+.gHeaders {
+  background-color: #f8fafc;
+  padding: 12px 6px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.pHeaders p,
+.gHeaders p {
+  margin: 0;
+}
+
+.tableContent,
+.tableContentNum {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #334155;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.tableContentNum {
+  font-weight: 500;
+  color: #1b9e3e;
+}
+
+.innerDiv {
+  /* For actions, to stack buttons vertically */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  padding-right: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+}
+
+/* Strix Button - General button style */
+.strixBtn {
+  background: #1b9e3e;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  width: 50%;
+}
+
+.strixBtn:hover {
+  background: #029328;
+}
+
+/* No data message */
+.noDataMessage {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1rem;
+  color: #64748b;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Pagination */
+.playersPagination,
+.genresPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 0;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.playersPagination button,
+.genresPagination button {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.playersPagination button:hover,
+.genresPagination button:hover {
+  background: #f1f5f9;
+}
+
+/* Active Pagination Page */
+.activePaginationPage {
+  background: #35a953;
+  color: white;
+  border-color: #f97316;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.normalPagination {
+  cursor: pointer;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .playersNav,
+  .genresNav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .searchInput {
+    width: 100%;
+    max-width: none;
+  }
+
+  .genreBtns {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Adjust grid for table details on smaller screens */
+  .playersDetails,
+  .genresDetails {
+    grid-template-columns: repeat(2, 1fr);
+    font-size: 12px;
+  }
+
+  .pHeaders,
+  .gHeaders,
+  .tableContent,
+  .tableContentNum,
+  .innerDiv {
+    padding: 8px 5px;
+  }
+
+  .strixBtn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+}

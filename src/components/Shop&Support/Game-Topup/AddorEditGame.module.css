@@ -1,0 +1,185 @@
+.container {
+  min-height: 100vh;
+  background-color: #f3f4f6; /* Equivalent to bg-white or a light gray background */
+  padding: 1.5rem;
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  overflow: scroll;
+}
+.backCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+.mainInfo {
+  display: flex;
+  gap: 7rem;
+  margin-top: 1rem;
+}
+.firstD {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+.inputLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.firstFlex {
+  display: flex;
+  justify-content: space-between;
+}
+.gameName {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #334155;
+}
+.labelName {
+  color: #334155;
+  font-weight: 600;
+}
+.countrySelect {
+  background-color: white;
+  border: 2px solid #e2e8f0; /* border-2 border-slate-300 */
+  color: #0f172a; /* text-slate-900 */
+  padding: 0.3rem 0.3rem; /* py-2.5 px-4 */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none;
+  transition: all 150ms ease-in-out;
+  width: 100%;
+}
+.countrySelect:focus {
+  border-color: #10b981; /* focus:border-emerald-500 or focus:border-blue-500 */
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* focus:ring-2 focus:ring-emerald-500/20 */
+}
+
+/* Container for the whole form group (label + upload box) */
+.formGroup {
+  margin-bottom: 20px;
+}
+
+/* Style for the "Game Image" label */
+.formLabel {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.inputTextarea {
+  padding: 0.3rem 0.2rem;
+  border-radius: 7px;
+  border: 2px solid #e5e5e5;
+  background-color: #fafafa;
+  transition: border-color 0.2s ease;
+}
+.inputTextarea:focus {
+  outline: none;
+  border-color: #22c55e;
+  background-color: white;
+}
+.initialFlex {
+  display: flex;
+  flex-direction: column;
+}
+.addTypeBtn {
+  background: #04a830;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(2, 147, 40, 0.2);
+  gap: 8px;
+}
+
+.addTypeBtn:hover {
+  background: #027a22;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(2, 147, 40, 0.3);
+}
+
+/* Main upload box styling */
+.imageUpload {
+  border: 2px dashed #ccc; /* Dashed border as in the image */
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  min-height: 150px; /* To match the visual height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  position: relative; /* For positioning the image preview */
+  overflow: hidden; /* Ensure image preview doesn't overflow */
+}
+
+/* Hover/Dragover state */
+.imageUpload:hover,
+.imageUpload.dragover {
+  border-color: #007bff; /* A blue color for hover */
+  background-color: #f0f8ff; /* Lighter background on hover */
+}
+
+/* Camera icon styling */
+.uploadIcon {
+  font-size: 48px; /* Large emoji size */
+  line-height: 1;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* Text inside the upload box */
+.uploadText {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Styling for "Click to upload" part */
+.clickUpload {
+  color: #28a745; /* Green color as in the image */
+  font-weight: bold;
+}
+
+/* Hidden file input */
+.hiddenInput {
+  display: none;
+}
+
+/* Image preview styling */
+.imagePreview {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Maintain aspect ratio */
+  border-radius: 4px;
+  position: absolute; /* Position over the upload text */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff; /* White background for image */
+  padding: 10px; /* Padding for the image within the dashed border area */
+}
