@@ -1,12 +1,50 @@
-# React + Vite
+# Strix Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The operations dashboard for Strix: games, rewards, missions, the Strix Pass, tournaments, players, channels, the shop, game top-ups, support and system settings. It talks to the Strix backend API with an admin token.
 
-Currently, two official plugins are available:
+## Run it
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+cp .env.example .env    # then point VITE_API_URL at the backend
+npm install
+npm run dev             # http://localhost:3000
+```
 
-## Expanding the ESLint configuration
+`VITE_API_URL` is the backend's `/api` base, without a trailing slash. Use `http://localhost:8000/api` with a local backend (`php artisan serve`). Point it at production only on purpose: every change you make there is real.
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server with hot reload |
+| `npm run build` | Production build into `dist/` |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit and component tests |
+| `npm run format` | Prettier over `src/` |
+
+## How it's built
+
+- **React 19 + Vite**, plain JavaScript.
+- **Routing:** React Router. Every page has its own URL, so pages survive a reload and can be shared.
+- **Data:** Redux Toolkit with **RTK Query**. `src/lib/api.js` holds the one API client. It adds the token, ends the session on a 401, and turns errors into readable messages. Each feature adds its endpoints with `api.injectEndpoints`, and a failed change shows a toast automatically.
+- **UI:** Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui`. The theme tokens, Strix green and dark mode, are in `src/index.css`. Add a component with `npx shadcn@3 add <name>`.
+- **Permissions:** the backend sends the admin's permission names at sign-in and from `GET /auth/admin/me`. `src/config/navigation.js` lists every page with the permission it needs, and both the sidebar and the route guards read it. Use `useCan("edit_games")` or `<Can permission="edit_games">` to hide actions. The backend enforces permissions too, so hiding is only for clarity.
+
+```
+src/
+  app/store.js           Redux store
+  lib/api.js             API client (RTK Query) and error messages
+  config/navigation.js   Pages, icons and permissions
+  features/auth/         Sign-in, session, permission guards
+  layouts/               App shell: sidebar and top bar
+  components/ui/         shadcn/ui primitives
+  components/common/     DataTable, PageHeader, StatCard, ConfirmDialog, …
+  hooks/                 useListParams (page/search in the URL), useDebouncedValue
+  pages/                 Rebuilt pages, one folder per area
+  components/<Area>/     Pages from the first version, moving to pages/ one by one
+```
+
+## Conventions
+
+- Lists keep their page, search and filters in the URL through `useListParams`.
+- Ask before anything destructive or irreversible with `ConfirmDialog`.
+- Never put secrets in this app: everything in `VITE_*` ships to the browser.
+- Admin sessions last 12 hours. Signing out revokes the token on the server.

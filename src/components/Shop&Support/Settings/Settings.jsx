@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { changeRole } from "../../../store/settingsSlice";
+import { useSelector } from "react-redux";
 import { secureFetch } from "../../../utils/api";
 import styles from "./Settings.module.css";
 import { FaPlus, FaCloudUploadAlt, FaTrashAlt, FaEdit } from "react-icons/fa";
 
 function Settings() {
-  const currentUserRole = useSelector((state) => state.settings.currentUserRole);
-  const dispatch = useDispatch();
 
   const [countries, setCountries] = useState([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
@@ -16,7 +13,7 @@ function Settings() {
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(true);
 
   // Grab the explicit role info from our secure Redux store
-  const currentUserIsBase = useSelector((state) => state.auth.adminData?.isBase);
+  const currentUserIsBase = useSelector((state) => state.auth.admin?.is_base);
   const currentUserPermissions = useSelector((state) => state.auth.permissions) || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);

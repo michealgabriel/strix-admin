@@ -23,7 +23,6 @@ const freeRewards = [
 const StrixPass = () => {
   const [vipSelections, setVipSelections] = useState({});
   const [freeSelections, setFreeSelections] = useState({});
-  const [activePassData, setActivePassData] = useState(null);
   const [activePassParsed, setActivePassParsed] = useState({ vippass: [], freepass: [] });
   const [activePassLevels, setActivePassLevels] = useState(10);
   const [passDurationDays, setPassDurationDays] = useState(24);
@@ -51,7 +50,6 @@ const StrixPass = () => {
       const data = await response.json();
       if (data.message === "success" && data.data.active_pass) {
         const pass = data.data.active_pass;
-        setActivePassData(pass);
         
         // Calculate duration
         if (pass.created_at && pass.expiration_date) {

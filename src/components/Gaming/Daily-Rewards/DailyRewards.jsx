@@ -24,7 +24,7 @@ const weekDays = [
 
 function DailyRewards() {
   const dispatch = useDispatch();
-  const { activeReward, nextWeekReward, loading } = useSelector((state) => state.dailyRewards);
+  const { activeReward, loading } = useSelector((state) => state.dailyRewards);
   const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
@@ -72,7 +72,7 @@ function DailyRewards() {
     if (!manifestString) return [];
     try {
       return JSON.parse(manifestString).data || [];
-    } catch (e) {
+    } catch {
       return [];
     }
   };
