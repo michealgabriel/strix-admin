@@ -13,21 +13,28 @@ const pages = {
   "/": lazy(() => import("@/features/dashboard/DashboardPage")),
   "/games": lazy(() => import("@/features/games/GamesPage")),
   "/daily-rewards": lazy(() => import("@/features/rewards/DailyRewardsPage")),
-  "/missions": lazy(() => import("@/components/Gaming/Missions/Missions")),
+  "/missions": lazy(() => import("@/features/missions/MissionsPage")),
   "/epic-clips": lazy(() => import("@/features/clips/EpicClipsPage")),
   "/strix-pass": lazy(() => import("@/features/rewards/StrixPassPage")),
-  "/tournaments": lazy(() => import("@/components/Gaming/Tournaments/Tournaments")),
-  "/players": lazy(() => import("@/components/User/Players/Players")),
-  "/channels": lazy(() => import("@/components/User/Channels-Chats/Channels")),
-  "/sale-items": lazy(() => import("@/components/Shop&Support/Sale-Items/SaleItems")),
-  "/game-topup": lazy(() => import("@/components/Shop&Support/Game-Topup/GameTopup")),
-  "/support": lazy(() => import("@/components/Shop&Support/Customer-Support/Customer")),
+  "/tournaments": lazy(() => import("@/features/tournaments/TournamentsPage")),
+  "/players": lazy(() => import("@/features/players/PlayersPage")),
+  "/channels": lazy(() => import("@/features/channels/ChannelsPage")),
+  "/sale-items": lazy(() => import("@/features/shop/SaleItemsPage")),
+  "/game-topup": lazy(() => import("@/features/topups/GameTopupPage")),
+  "/support": lazy(() => import("@/features/support/SupportPage")),
   "/settings": lazy(() => import("@/features/settings/SettingsPage")),
 };
 
+// Pages inside an area, guarded like the area's main page
+const extraRoutes = [
+  { path: "players/:playerId", parent: "/players", Page: lazy(() => import("@/features/players/PlayerDetailPage")) },
+  { path: "tournaments/:tournamentId", parent: "/tournaments", Page: lazy(() => import("@/features/tournaments/TournamentDetailPage")) },
+];
+
 // The permission for each page comes from the same list as the sidebar
-const guarded = (path) => {
-  const Page = pages[path];
+const guarded = (path) => guardedPage(path, pages[path]);
+
+function guardedPage(path, Page) {
   const item = navItems.find((entry) => entry.path === path);
   return (
     <RequirePermission permission={item?.permission}>
@@ -36,7 +43,7 @@ const guarded = (path) => {
       </Suspense>
     </RequirePermission>
   );
-};
+}
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -50,6 +57,7 @@ export const router = createBrowserRouter([
           ...Object.keys(pages)
             .filter((path) => path !== "/")
             .map((path) => ({ path: path.slice(1), element: guarded(path) })),
+          ...extraRoutes.map(({ path, parent, Page }) => ({ path, element: guardedPage(parent, Page) })),
           { path: "*", element: <NotFound /> },
         ],
       },
