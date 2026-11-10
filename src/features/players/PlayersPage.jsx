@@ -35,6 +35,9 @@ export default function PlayersPage() {
             <p className="truncate font-medium">
               {p.username}
               {p.account_deleted_at && <Badge variant="secondary" className="ml-2">Deleted</Badge>}
+              {p.suspended_at && (!p.suspended_until || new Date(p.suspended_until) > new Date()) && (
+                <Badge variant="destructive" className="ml-2">{p.suspended_until ? "Suspended" : "Banned"}</Badge>
+              )}
             </p>
             <p className="truncate text-sm text-muted-foreground">{p.email}</p>
           </div>

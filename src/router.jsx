@@ -22,12 +22,17 @@ const pages = {
   "/sale-items": lazy(() => import("@/features/shop/SaleItemsPage")),
   "/game-topup": lazy(() => import("@/features/topups/GameTopupPage")),
   "/support": lazy(() => import("@/features/support/SupportPage")),
+  "/reports": lazy(() => import("@/features/reports/ReportsPage")),
+  "/orders": lazy(() => import("@/features/orders/OrdersPage")),
+  "/campaigns": lazy(() => import("@/features/campaigns/CampaignsPage")),
   "/settings": lazy(() => import("@/features/settings/SettingsPage")),
 };
 
 // Pages inside an area, guarded like the area's main page
 const extraRoutes = [
   { path: "players/:playerId", parent: "/players", Page: lazy(() => import("@/features/players/PlayerDetailPage")) },
+  { path: "campaigns/new", parent: "/campaigns", Page: lazy(() => import("@/features/campaigns/CampaignEditorPage")) },
+  { path: "campaigns/:campaignId", parent: "/campaigns", Page: lazy(() => import("@/features/campaigns/CampaignEditorPage")) },
   { path: "tournaments/:tournamentId", parent: "/tournaments", Page: lazy(() => import("@/features/tournaments/TournamentDetailPage")) },
 ];
 

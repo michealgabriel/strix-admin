@@ -17,6 +17,7 @@ import { useListParams } from "@/hooks/useListParams";
 import { errorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import ClipCard from "./ClipCard";
+import { REASON_LABELS } from "./reasons";
 import {
   useCrownClipMutation,
   useGetClipReportsQuery,
@@ -49,7 +50,7 @@ export default function EpicClipsPage() {
           <Clips list={list} />
         </TabsContent>
         <TabsContent value="reports">
-          <Reports list={list} />
+          <ClipReports list={list} />
         </TabsContent>
       </Tabs>
     </>
@@ -157,17 +158,8 @@ function Clips({ list }) {
   );
 }
 
-const REASON_LABELS = {
-  spam: "Spam",
-  sexual: "Sexual content",
-  violent: "Violence",
-  hateful: "Hate",
-  harassment: "Harassment",
-  cheating: "Cheating",
-  other: "Other",
-};
 
-function Reports({ list }) {
+export function ClipReports({ list }) {
   const status = list.get("status") || "open";
   const { data, isLoading, isFetching, error, refetch } = useGetClipReportsQuery({ page: list.page, status });
   const canModerate = useCan("disable_epic_clips");

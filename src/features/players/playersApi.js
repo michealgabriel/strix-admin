@@ -20,7 +20,20 @@ const playersApi = api.enhanceEndpoints({ addTagTypes: ["Players", "Player"] }).
       query: ({ id, page = 1 }) => listQuery(`/admin/players/${id}/reliability`, { page }),
       transformResponse: (response) => ({ ...toList(response), player: response?.player }),
     }),
+    suspendPlayer: build.mutation({
+      query: ({ id, reason, days }) => ({ url: `/admin/players/${id}/suspend`, method: "POST", body: { reason, ...(days ? { days } : {}) } }),
+      invalidatesTags: (r, e, { id }) => ["Players", { type: "Player", id: String(id) }],
+    }),
+    unsuspendPlayer: build.mutation({
+      query: (id) => ({ url: `/admin/players/${id}/unsuspend`, method: "POST" }),
+      invalidatesTags: (r, e, id) => ["Players", { type: "Player", id: String(id) }],
+    }),
+    adjustWallet: build.mutation({
+      query: ({ id, ...body }) => ({ url: `/admin/players/${id}/wallet`, method: "POST", body }),
+      invalidatesTags: (r, e, { id }) => ["Players", { type: "Player", id: String(id) }],
+    }),
   }),
 });
 
+export const { useSuspendPlayerMutation, useUnsuspendPlayerMutation, useAdjustWalletMutation } = playersApi;
 export const { useGetPlayersQuery, useGetPlayerQuery, useGetPlayerWalletQuery, useGetPlayerReliabilityQuery } = playersApi;

@@ -12,6 +12,9 @@ import {
   Headset,
   Settings,
   LayoutDashboard,
+  Megaphone,
+  Receipt,
+  ShieldAlert,
 } from "lucide-react";
 
 // One list drives both the sidebar and the route guards.
@@ -36,19 +39,25 @@ export const navigation = [
     items: [
       { label: "Players", path: "/players", icon: Users, permission: "view_users" },
       { label: "Channels", path: "/channels", icon: MessagesSquare, permission: "view_channels" },
+      { label: "Reports", path: "/reports", icon: ShieldAlert, permission: ["moderate_posts", "view_epic_clips"] },
     ],
+  },
+  {
+    label: "Engagement",
+    items: [{ label: "Push campaigns", path: "/campaigns", icon: Megaphone, permission: "send_push_campaigns" }],
   },
   {
     label: "Shop & Support",
     items: [
       { label: "Sale Items", path: "/sale-items", icon: ShoppingBag, permission: "view_shop_sale_items" },
+      { label: "Orders", path: "/orders", icon: Receipt, permission: "view_orders" },
       { label: "Game Top-up", path: "/game-topup", icon: Wallet, permission: "view_game_topups" },
       { label: "Customer Support", path: "/support", icon: Headset, permission: "manage_customer_supports" },
       {
         label: "Settings",
         path: "/settings",
         icon: Settings,
-        permission: ["manage_system_countries", "view_system_admins", "view_roles"],
+        permission: ["manage_system_countries", "view_system_admins", "view_roles", "view_activity_log"],
       },
     ],
   },

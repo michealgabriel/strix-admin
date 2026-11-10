@@ -13,6 +13,7 @@ import StatCard from "@/components/common/StatCard";
 import { errorMessage } from "@/lib/api";
 import { formatDate, formatNumber, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import ModerationActions, { SuspensionBanner } from "./ModerationActions";
 import { useGetPlayerQuery, useGetPlayerReliabilityQuery, useGetPlayerWalletQuery } from "./playersApi";
 
 export default function PlayerDetailPage() {
@@ -70,8 +71,11 @@ export default function PlayerDetailPage() {
               {details?.timezone ? ` · ${details.timezone}` : ""}
             </p>
           </div>
+          <ModerationActions player={player} suspension={details?.suspension} />
         </div>
       )}
+
+      {!isLoading && <SuspensionBanner suspension={details?.suspension} />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Strix Gold" icon={Coins} loading={isLoading} value={formatNumber(player?.strix_gold)} />
@@ -201,6 +205,7 @@ function Overview({ player, details }) {
 }
 
 const REASONS = {
+  admin_adjustment: "Adjusted by staff",
   ad_reward: "Watched an ad",
   chest_purchase: "Chest bought",
   gold_purchase: "Gold pack bought",
@@ -225,7 +230,16 @@ function Wallet({ playerId }) {
 
   const columns = [
     { key: "when", header: "When", cell: (t) => formatDate(t.created_at, true) },
-    { key: "reason", header: "What", cell: (t) => <span className="capitalize">{reasonLabel(t.reason)}</span> },
+    {
+      key: "reason",
+      header: "What",
+      cell: (t) => (
+        <div>
+          <span>{reasonLabel(t.reason)}</span>
+          {t.meta?.note && <p className="text-xs text-muted-foreground">{t.meta.note}{t.meta.admin_name ? ` · ${t.meta.admin_name}` : ""}</p>}
+        </div>
+      ),
+    },
     {
       key: "amount",
       header: "Change",

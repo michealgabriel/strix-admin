@@ -48,7 +48,8 @@ function Overview() {
   const { data, isLoading, isFetching, error, refetch } = useGetDashboardQuery(undefined, { pollingInterval: 120_000 });
   const canTopups = useCan("view_topup_purchases");
   const canSupport = useCan("manage_customer_supports");
-  const canClips = useCan("view_epic_clips");
+  const canReports = useCan(["moderate_posts", "view_epic_clips"]);
+  const canOrders = useCan("view_orders");
 
   if (error) {
     return (
@@ -124,8 +125,8 @@ function Overview() {
           <QueueCard label="Top-ups to deliver" icon={Wallet} count={queues.pending_topups} loading={isLoading} to={canTopups ? "/game-topup?tab=purchases" : undefined} />
           <QueueCard label="Game currency claims" icon={Gift} count={queues.game_currency_claims} loading={isLoading} to={canTopups ? "/game-topup?tab=claims" : undefined} />
           <QueueCard label="Open support chats" icon={Headset} count={queues.open_support} loading={isLoading} to={canSupport ? "/support" : undefined} />
-          <QueueCard label="Reported content" icon={Flag} count={queues.reported_content} loading={isLoading} to={canClips ? "/epic-clips?tab=reports" : undefined} />
-          <QueueCard label="Refunds pending" icon={RotateCcw} count={queues.refunds_pending} loading={isLoading} />
+          <QueueCard label="Reported content" icon={Flag} count={queues.reported_content} loading={isLoading} to={canReports ? "/reports" : undefined} />
+          <QueueCard label="Refunds pending" icon={RotateCcw} count={queues.refunds_pending} loading={isLoading} to={canOrders ? "/orders?status=refund_pending" : undefined} />
         </div>
       </section>
 
