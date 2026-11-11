@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Check, Copy, Loader2, X } from "lucide-react";
+import { Check, Copy, ExternalLink, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { useCan } from "@/features/auth/useCan";
 import { useListParams } from "@/hooks/useListParams";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useDecideTopupMutation, useGetTopupPurchasesQuery } from "./topupsApi";
+import { carry1stUrl } from "./carry1st";
 
 // kind: "purchases" (paid top-ups) or "claims" (game currency won in chests)
 export default function PurchasesQueue({ kind }) {
@@ -23,10 +24,10 @@ export default function PurchasesQueue({ kind }) {
   const canProcess = useCan("process_topup_purchases");
   const [deciding, setDeciding] = useState(null); // { purchase, approve }
 
-  const copy = async (text) => {
+  const copy = async (text, note = "Gamer ID copied") => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Gamer ID copied");
+      toast.success(note);
     } catch {
       // clipboard blocked
     }
@@ -65,6 +66,17 @@ export default function PurchasesQueue({ kind }) {
           className: "text-right",
           cell: (p) => (
             <div className="flex justify-end gap-1">
+              <Button size="sm" variant="outline" asChild>
+                <a
+                  href={carry1stUrl(p.country)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Buy on Carry1st${p.country ? ` (${p.country.name})` : ""}. Copies the gamer ID too`}
+                  onClick={() => copy(p.topup_player_gamerid, "Gamer ID copied. Paste it on Carry1st")}
+                >
+                  <ExternalLink /> Carry1st
+                </a>
+              </Button>
               <Button size="sm" onClick={() => setDeciding({ purchase: p, approve: true })}><Check /> Delivered</Button>
               <Button size="sm" variant="ghost" onClick={() => setDeciding({ purchase: p, approve: false })}><X /> Decline</Button>
             </div>
