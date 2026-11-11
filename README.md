@@ -26,6 +26,7 @@ npm run dev             # http://localhost:3000
 - **Routing:** React Router. Every page has its own URL, so pages survive a reload and can be shared.
 - **Data:** Redux Toolkit with **RTK Query**. `src/lib/api.js` holds the one API client. It adds the token, ends the session on a 401, and turns errors into readable messages. Each feature adds its endpoints with `api.injectEndpoints`, and a failed change shows a toast automatically.
 - **UI:** Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui`. The theme tokens, Strix green and dark mode, are in `src/index.css`. Add a component with `npx shadcn@3 add <name>`.
+- **Live updates:** Pusher, through `pusher-js`. The backend sends the Pusher key and cluster with the admin profile, so there's nothing to configure here. `useRealtimeChannel(name, handlers, onReconnect)` in `src/hooks` subscribes to a private channel while a page is open, and returns whether it's live. Customer Support uses it, and falls back to polling when it isn't live. The connection lives in `src/lib/realtime.js` and closes on sign-out.
 - **Permissions:** the backend sends the admin's permission names at sign-in and from `GET /auth/admin/me`. `src/config/navigation.js` lists every page with the permission it needs, and both the sidebar and the route guards read it. Use `useCan("edit_games")` or `<Can permission="edit_games">` to hide actions. The backend enforces permissions too, so hiding is only for clarity.
 
 ```
@@ -33,6 +34,7 @@ src/
   app/store.js           Redux store
   lib/api.js             API client (RTK Query), list and form helpers, error messages
   lib/format.js          Numbers, money and dates
+  lib/realtime.js        The Pusher connection
   config/navigation.js   Pages, icons and permissions
   router.jsx             Routes; each page loads on first visit
   features/<area>/       One folder per area: its API endpoints, page and parts
@@ -40,7 +42,7 @@ src/
   layouts/               App shell: sidebar and top bar
   components/ui/         shadcn/ui primitives
   components/common/     DataTable, PageHeader, StatCard, ConfirmDialog, FormField, …
-  hooks/                 useListParams (page/search in the URL), useDebouncedValue
+  hooks/                 useListParams (page/search in the URL), useDebouncedValue, useRealtimeChannel
   pages/                 Not found and no access
   components/<Area>/     Pages from the first version, being rebuilt into features/
 ```

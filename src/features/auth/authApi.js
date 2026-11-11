@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { disconnectRealtime } from "@/lib/realtime";
 import { profileLoaded, signedIn, signedOut } from "./authSlice";
 
 export const authApi = api.injectEndpoints({
@@ -13,6 +14,7 @@ export const authApi = api.injectEndpoints({
               token: data.admin_access_token,
               admin: data.admin,
               permissions: data.permissions,
+              realtime: data.realtime,
             }),
           );
         } catch {
@@ -26,7 +28,7 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(profileLoaded({ admin: data.admin, permissions: data.permissions }));
+          dispatch(profileLoaded({ admin: data.admin, permissions: data.permissions, realtime: data.realtime }));
         } catch {
           // A 401 already ends the session in the base query
         }
@@ -44,6 +46,7 @@ export const authApi = api.injectEndpoints({
         } catch {
           // ignore
         }
+        disconnectRealtime();
         dispatch(signedOut());
         dispatch(api.util.resetApiState());
       },

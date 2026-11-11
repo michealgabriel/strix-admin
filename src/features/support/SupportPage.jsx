@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { CheckCircle2, Headset, Loader2, MessageSquare, Send, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,10 +15,13 @@ import PlayerAvatar from "@/components/common/PlayerAvatar";
 import SearchInput from "@/components/common/SearchInput";
 import { selectAdmin } from "@/features/auth/authSlice";
 import { useListParams } from "@/hooks/useListParams";
+import { useRealtimeChannel } from "@/hooks/useRealtimeChannel";
 import { errorMessage } from "@/lib/api";
 import { formatDate, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
+  supportApi,
+  upsertMessage,
   useCloseSupportSessionMutation,
   useGetSupportMessagesQuery,
   useGetSupportSessionQuery,
@@ -33,11 +36,43 @@ export default function SupportPage() {
   const assigned = list.get("assigned");
   const search = list.get("q");
   const selected = list.get("chat");
-  const { data, isLoading, error, refetch } = useGetSupportSessionsQuery({ page: list.page, status, assigned, search }, { pollingInterval: 30_000 });
+  const dispatch = useDispatch();
+
+  // Every chat's activity arrives on the staff inbox channel; the open chat updates in place
+  const live = useRealtimeChannel(
+    "private-support-inbox",
+    {
+      "support.message.sent": (message) => {
+        const id = String(message.support_session_id);
+        if (message.truncated) {
+          dispatch(supportApi.util.invalidateTags([{ type: "SupportMessages", id }]));
+        } else {
+          dispatch(supportApi.util.updateQueryData("getSupportMessages", id, (draft) => upsertMessage(draft, message)));
+        }
+        dispatch(supportApi.util.invalidateTags(["Support"]));
+      },
+      "support.session.changed": (change) => {
+        dispatch(supportApi.util.invalidateTags(["Support", "Dashboard", { type: "SupportChat", id: String(change.support_session_id) }]));
+      },
+    },
+    () => dispatch(supportApi.util.invalidateTags(["Support", "SupportChat", "SupportMessages"])),
+  );
+
+  // Polling only stands in while live updates aren't working
+  const { data, isLoading, error, refetch } = useGetSupportSessionsQuery({ page: list.page, status, assigned, search }, { pollingInterval: live ? 0 : 30_000 });
 
   return (
     <>
-      <PageHeader title="Customer Support" description="Chats players start from the app. The first person to reply takes the chat, and the player gets a notification." />
+      <PageHeader
+        title="Customer Support"
+        description="Chats players start from the app. The first person to reply takes the chat, and the player gets a notification."
+        actions={
+          <Badge variant="outline" className="gap-1.5" title={live ? "New messages appear as they're sent" : "Checking for new messages every few seconds"}>
+            <span className={cn("size-2 rounded-full", live ? "bg-emerald-500" : "bg-muted-foreground/50")} aria-hidden />
+            {live ? "Live" : "Refreshing"}
+          </Badge>
+        }
+      />
       <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
         <div className="space-y-3">
           <SearchInput value={search} onChange={(q) => list.set({ q, chat: selected })} placeholder="Search players" className="sm:w-full" />
@@ -90,7 +125,7 @@ export default function SupportPage() {
             )}
           </Card>
         </div>
-        {selected ? <Chat key={selected} id={selected} /> : (
+        {selected ? <Chat key={selected} id={selected} live={live} /> : (
           <Card className="hidden lg:flex"><EmptyState icon={MessageSquare} title="Pick a chat" description="Choose a conversation on the left to read and reply." /></Card>
         )}
       </div>
@@ -98,10 +133,10 @@ export default function SupportPage() {
   );
 }
 
-function Chat({ id }) {
+function Chat({ id, live }) {
   const me = useSelector(selectAdmin);
   const { data: session, isLoading: loadingSession, error } = useGetSupportSessionQuery(id);
-  const { data: messages = [], isLoading } = useGetSupportMessagesQuery(id, { pollingInterval: 5_000, skipPollingIfUnfocused: true });
+  const { data: messages = [], isLoading } = useGetSupportMessagesQuery(id, { pollingInterval: live ? 0 : 5_000, skipPollingIfUnfocused: true });
   const [send, sending] = useSendSupportMessageMutation();
   const [join, joining] = useJoinSupportSessionMutation();
   const [close, closing] = useCloseSupportSessionMutation();

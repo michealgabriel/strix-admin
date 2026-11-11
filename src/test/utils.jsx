@@ -9,7 +9,7 @@ export function makeStore(auth = {}) {
   return configureStore({
     reducer: { [api.reducerPath]: api.reducer, auth: authReducer },
     preloadedState: {
-      auth: { token: null, admin: null, permissions: [], endedReason: null, ...auth },
+      auth: { token: null, admin: null, permissions: [], realtime: null, endedReason: null, ...auth },
     },
     middleware: (getDefault) => getDefault().concat(api.middleware),
   });
