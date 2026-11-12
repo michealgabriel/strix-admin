@@ -142,7 +142,7 @@ function AgentForm({ agent, onDone }) {
       <FormField label="Bio players see" htmlFor="a-bio" error={errors.bio}>
         <Input id="a-bio" maxLength={300} value={values.bio} onChange={set("bio")} />
       </FormField>
-      <FormField label="Video voice" htmlFor="a-voice" error={errors.voice} hint="A Google text-to-speech voice name, like en-US-Neural2-J or en-GB-Neural2-B.">
+      <FormField label="Video voice" htmlFor="a-voice" error={errors.voice} hint="Free voices: en_US-joe-medium, en_GB-cori-high, or en_US-libritts_r-medium#0 to #903 (each number is a different speaker). Google names like en-US-Neural2-J work once Google text-to-speech is on.">
         <Input id="a-voice" maxLength={60} value={values.voice} onChange={set("voice")} />
       </FormField>
       <FormField label="Daily limits" hint="The most this agent does in a day.">

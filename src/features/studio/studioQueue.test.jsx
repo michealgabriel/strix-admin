@@ -191,6 +191,10 @@ test("a draft can be turned into a video", async () => {
   renderRoutes(routes, { store: store(), path: "/studio" });
 
   await userEvent.click(await screen.findByRole("button", { name: "Make video" }));
+  const dialog = await screen.findByRole("dialog");
+  await userEvent.click(within(dialog).getByRole("textbox", { name: /Plan/ }));
+  await userEvent.paste('{"segments":[{"start":0,"end":5}],"music":"none"}');
+  await userEvent.click(within(dialog).getByRole("button", { name: "Make video" }));
   await waitFor(() => expect(calls.some((call) => call.path === "/admin/studio/content/7/video")).toBe(true));
 });
 
@@ -223,4 +227,71 @@ test("clips are added by link with their game", async () => {
     system_game_id: "3",
     url: "https://cdn.example.com/t2.mp4",
   }));
+});
+
+test("drafts are checked, then imported, and bad lines are listed", async () => {
+  const calls = [];
+  const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  globalThis.fetch = vi.fn(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/^\/api/, "");
+    const body = request.method === "POST" ? await request.json() : null;
+    calls.push({ method: request.method, path, body });
+    if (path === "/admin/studio/content") return json(200, { data: [], counts: {}, pagination: { total: 0, page_limit: 20, current_page: 1 } });
+    if (path === "/admin/studio/import") {
+      if (body.posts[0].agent === "Nobody") return json(422, { message: "Some lines need fixing", errors: { "posts.0.agent": 'No agent called "Nobody"' } });
+      return body.check
+        ? json(200, { summary: { posts: 1, chats: 0, videos: 0 } })
+        : json(201, { message: "Imported 1 posts and 0 chats", made: { posts: 1, chats: 0, videos: 0, video_problems: {} } });
+    }
+    return json(404, {});
+  });
+  renderRoutes(routes, { store: store(), path: "/studio" });
+
+  await userEvent.click(await screen.findByRole("button", { name: "Import drafts" }));
+  const dialog = await screen.findByRole("dialog");
+  const box = within(dialog).getByRole("textbox", { name: "Drafts JSON" });
+  await userEvent.click(box);
+  await userEvent.paste('{"posts":[{"agent":"Nobody","title":"x","text":"y"}]}');
+  await userEvent.click(within(dialog).getByRole("button", { name: "Check" }));
+  expect(await within(dialog).findByRole("alert")).toHaveTextContent('posts.0.agent: No agent called "Nobody"');
+  expect(within(dialog).getByRole("button", { name: "Import" })).toBeDisabled();
+
+  await userEvent.clear(box);
+  await userEvent.paste('{"posts":[{"agent":"NovaLeaks","title":"x","text":"y"}]}');
+  await userEvent.click(within(dialog).getByRole("button", { name: "Check" }));
+  expect(await within(dialog).findByText(/Ready: 1 posts, 0 chats, 0 videos/)).toBeInTheDocument();
+  await userEvent.click(within(dialog).getByRole("button", { name: "Import" }));
+
+  await waitFor(() => expect(calls.filter((call) => call.path === "/admin/studio/import")).toHaveLength(3));
+  expect(calls.filter((call) => call.path === "/admin/studio/import").at(-1).body).toEqual({ posts: [{ agent: "NovaLeaks", title: "x", text: "y" }] });
+});
+
+test("a music track is added by link with its mood", async () => {
+  const calls = [];
+  const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  globalThis.fetch = vi.fn(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    const path = new URL(request.url).pathname.replace(/^\/api/, "");
+    const call = { method: request.method, path };
+    if (request.method === "POST") call.form = Object.fromEntries(await request.formData());
+    calls.push(call);
+    if (path === "/admin/studio/clips") return json(200, { data: [], pagination: { total: 0, page_limit: 30, current_page: 1 } });
+    if (path === "/admin/studio/music" && request.method === "GET") return json(200, { data: [] });
+    if (path === "/admin/studio/music") return json(201, { track: { id: 1 } });
+    return json(404, {});
+  });
+  renderRoutes(routes, { store: store(), path: "/studio?tab=clips" });
+
+  expect(await screen.findByText(/Videos are made without music/)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Add track" }));
+  const dialog = await screen.findByRole("dialog");
+  await userEvent.type(within(dialog).getByLabelText(/^Title/), "Hype beat 1");
+  await userEvent.click(within(dialog).getByRole("combobox", { name: "Mood" }));
+  await userEvent.click(await screen.findByRole("option", { name: "hype" }));
+  await userEvent.type(within(dialog).getByLabelText(/Or a direct link/), "https://cdn.example.com/hype.mp3");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Add track" }));
+
+  await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({ title: "Hype beat 1", mood: "hype", url: "https://cdn.example.com/hype.mp3" }));
 });

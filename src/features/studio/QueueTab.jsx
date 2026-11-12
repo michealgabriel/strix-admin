@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CalendarClock, Check, Clapperboard, ExternalLink, Inbox, Loader2, Pencil, Send, X } from "lucide-react";
+import { CalendarClock, Check, Clapperboard, ExternalLink, FileUp, Inbox, Loader2, Pencil, Send, X } from "lucide-react";
+import ImportDialog from "./ImportDialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export default function QueueTab() {
   const { data, isLoading, isFetching, error, refetch } = useGetContentQuery({ status, page: list.page });
   const [selected, setSelected] = useState(new Set());
   const [editing, setEditing] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [bulk, { isLoading: bulking }] = useBulkContentMutation();
 
   const toggle = (id) => setSelected((current) => {
@@ -78,8 +80,9 @@ export default function QueueTab() {
             </Button>
           ))}
         </div>
+        <Button size="sm" variant="outline" className="sm:ml-auto" onClick={() => setImporting(true)}><FileUp /> Import drafts</Button>
         {status === "draft" && selected.size > 0 && (
-          <div className="flex gap-2 sm:ml-auto">
+          <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={bulking} onClick={() => runBulk("reject")}><X /> Reject {selected.size}</Button>
             <Button size="sm" disabled={bulking} onClick={() => runBulk("approve")}><CalendarClock /> Schedule {selected.size}</Button>
           </div>
@@ -104,6 +107,9 @@ export default function QueueTab() {
         </div>
       )}
 
+      <Dialog open={importing} onOpenChange={setImporting}>
+        <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">{importing && <ImportDialog onDone={() => setImporting(false)} />}</DialogContent>
+      </Dialog>
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
           {editing && <ItemForm key={editing.id} item={editing} onDone={() => setEditing(null)} />}
@@ -116,15 +122,7 @@ export default function QueueTab() {
 function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
   const [approve, { isLoading: approving }] = useApproveContentMutation();
   const [reject, { isLoading: rejecting }] = useRejectContentMutation();
-  const [makeVideo, { isLoading: making }] = useMakeVideoMutation();
-  const video = async () => {
-    try {
-      const result = await makeVideo(item.id).unwrap();
-      toast.success(result.message);
-    } catch (e) {
-      toast.error(errorMessage(e));
-    }
-  };
+  const [videoOpen, setVideoOpen] = useState(false);
   const editable = ["draft", "scheduled", "failed"].includes(item.status);
   const who = item.kind === "channel_thread"
     ? `#${item.payload.channel_name} · ${new Set(item.payload.messages.map((m) => m.username)).size} agents`
@@ -188,14 +186,69 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
               <Button size="sm" onClick={publishNow} disabled={approving}>{approving ? <Loader2 className="animate-spin" /> : <Send />} {item.kind === "channel_thread" ? "Start chat now" : "Publish now"}</Button>
               <Button size="sm" variant="outline" onClick={onEdit}><CalendarClock /> Edit or schedule</Button>
               {item.kind !== "channel_thread" && item.kind !== "video_post" && item.status !== "scheduled" && !["queued", "rendering"].includes(item.media?.render_status) && (
-                <Button size="sm" variant="outline" disabled={making} onClick={video}>{making ? <Loader2 className="animate-spin" /> : <Clapperboard />} Make video</Button>
+                <Button size="sm" variant="outline" onClick={() => setVideoOpen(true)}><Clapperboard /> Make video</Button>
               )}
               <Button size="sm" variant="ghost" disabled={rejecting} onClick={() => reject(item.id)}><X /> Reject</Button>
             </div>
           )}
         </div>
       </CardContent>
+      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
+        <DialogContent className="sm:max-w-xl">{videoOpen && <VideoDialog item={item} onDone={() => setVideoOpen(false)} />}</DialogContent>
+      </Dialog>
     </Card>
+  );
+}
+
+const PLAN_EXAMPLE = `{
+  "clip": "Trailer 2 beach chase",
+  "segments": [{ "start": 3, "end": 9 }, { "start": 20, "end": 26 }],
+  "overlays": [{ "text": "VICE CITY IS BACK", "start": 0, "end": 3 }],
+  "voiceover": "Vice City is back, via IGN…",
+  "music": "Hype beat 1"
+}`;
+
+// A video from a pasted plan, or planned by Claude when the plan is left empty
+function VideoDialog({ item, onDone }) {
+  const [plan, setPlan] = useState("");
+  const [problem, setProblem] = useState(null);
+  const [makeVideo, { isLoading }] = useMakeVideoMutation();
+
+  const submit = async () => {
+    setProblem(null);
+    let parsed = null;
+    if (plan.trim()) {
+      try {
+        parsed = JSON.parse(plan);
+      } catch {
+        return setProblem("That isn't valid JSON.");
+      }
+    }
+    try {
+      const result = await makeVideo({ id: item.id, plan: parsed }).unwrap();
+      toast.success(result.message);
+      onDone();
+    } catch (e) {
+      setProblem(errorMessage(e));
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Make a video</DialogTitle>
+        <DialogDescription>
+          Cut from this game's clips, with captions, a voice-over in the agent's voice and background music. Paste a plan, or leave it empty for Claude to plan it (needs the API key).
+        </DialogDescription>
+      </DialogHeader>
+      <FormField label="Plan (optional)" htmlFor="v-plan" error={problem} hint="Times are in seconds. Leave out music for a random track, or use &quot;none&quot;.">
+        <Textarea id="v-plan" rows={9} className="font-mono text-xs" placeholder={PLAN_EXAMPLE} value={plan} onChange={(e) => setPlan(e.target.value)} />
+      </FormField>
+      <DialogFooter>
+        <Button variant="outline" onClick={onDone} disabled={isLoading}>Cancel</Button>
+        <Button onClick={submit} disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : <Clapperboard />} Make video</Button>
+      </DialogFooter>
+    </div>
   );
 }
 

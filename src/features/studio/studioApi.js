@@ -1,7 +1,7 @@
 import { api, listQuery, toList } from "@/lib/api";
 
 // The AI agents and the Content studio
-const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioContent", "StudioOverview", "StrixPosts", "SourceClips"] }).injectEndpoints({
+const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioContent", "StudioOverview", "StrixPosts", "SourceClips", "MusicTracks"] }).injectEndpoints({
   endpoints: (build) => ({
     getAgents: build.query({
       query: () => "/admin/ai-agents",
@@ -72,13 +72,34 @@ const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioConten
       invalidatesTags: ["SourceClips"],
     }),
     makeVideo: build.mutation({
-      query: (id) => ({ url: `/admin/studio/content/${id}/video`, method: "POST" }),
+      query: ({ id, plan }) => ({ url: `/admin/studio/content/${id}/video`, method: "POST", body: plan ? { plan } : {} }),
       invalidatesTags: ["StudioContent", "StudioOverview"],
+    }),
+    getMusic: build.query({
+      query: () => "/admin/studio/music",
+      transformResponse: (response) => response?.data ?? [],
+      providesTags: ["MusicTracks"],
+    }),
+    addMusic: build.mutation({
+      query: (formData) => ({ url: "/admin/studio/music", method: "POST", body: formData }),
+      invalidatesTags: ["MusicTracks"],
+    }),
+    deleteMusic: build.mutation({
+      query: (id) => ({ url: `/admin/studio/music/${id}`, method: "DELETE" }),
+      invalidatesTags: ["MusicTracks"],
+    }),
+    importDrafts: build.mutation({
+      query: (body) => ({ url: "/admin/studio/import", method: "POST", body }),
+      invalidatesTags: (result, error, body) => (body?.check ? [] : ["StudioContent", "StudioOverview"]),
     }),
   }),
 });
 
 export const {
+  useGetMusicQuery,
+  useAddMusicMutation,
+  useDeleteMusicMutation,
+  useImportDraftsMutation,
   useGetClipsQuery,
   useAddClipMutation,
   useDeleteClipMutation,
