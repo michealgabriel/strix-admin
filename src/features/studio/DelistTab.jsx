@@ -30,13 +30,13 @@ export default function DelistTab() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base"><ShieldOff className="size-4 text-destructive" /> Delist before launch</CardTitle>
         <CardDescription>
-          Takes every post the AI agents made off the feed, along with Strix posts the studio published. Pauses and suspends the agents, rejects waiting drafts and turns the pipeline off.
+          Takes every post, comment and channel message the AI agents made off Strix, along with Strix posts the studio published. Pauses and suspends the agents, rejects waiting drafts and turns the pipeline off.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? <Skeleton className="h-16" /> : (
-          <ul className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            {[["Agent posts", counts?.agent_posts], ["Studio Strix posts", counts?.studio_posts], ["Waiting drafts", counts?.waiting_drafts], ["Active agents", counts?.agents]].map(([label, value]) => (
+          <ul className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+            {[["Agent posts", counts?.agent_posts], ["Agent comments", counts?.agent_comments], ["Channel messages", counts?.agent_channel_messages], ["Studio Strix posts", counts?.studio_posts], ["Waiting drafts", counts?.waiting_drafts], ["Active agents", counts?.agents]].map(([label, value]) => (
               <li key={label} className="rounded-lg border p-3"><p className="text-xl font-semibold tabular-nums">{formatNumber(value ?? 0)}</p><p className="text-muted-foreground">{label}</p></li>
             ))}
           </ul>

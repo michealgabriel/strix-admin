@@ -116,12 +116,14 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
   const [approve, { isLoading: approving }] = useApproveContentMutation();
   const [reject, { isLoading: rejecting }] = useRejectContentMutation();
   const editable = ["draft", "scheduled", "failed"].includes(item.status);
-  const who = item.publish_as === "strix" ? "Strix" : item.publish_as === "random_agent" ? "A random agent" : (item.agent?.display_name ?? "An agent");
+  const who = item.kind === "channel_thread"
+    ? `#${item.payload.channel_name} · ${new Set(item.payload.messages.map((m) => m.username)).size} agents`
+    : item.publish_as === "strix" ? "Strix" : item.publish_as === "random_agent" ? "A random agent" : (item.agent?.display_name ?? "An agent");
 
   const publishNow = async () => {
     try {
-      await approve({ id: item.id }).unwrap();
-      toast.success("Published");
+      const result = await approve({ id: item.id }).unwrap();
+      toast.success(result.message);
     } catch (e) {
       toast.error(errorMessage(e));
     }
@@ -137,7 +139,18 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
             <h3 className="min-w-0 flex-1 font-semibold leading-snug">{item.payload.title}</h3>
             {editable && <Button variant="ghost" size="icon-sm" aria-label={`Edit ${item.payload.title}`} onClick={onEdit}><Pencil /></Button>}
           </div>
-          <p className="whitespace-pre-line text-sm text-muted-foreground">{item.payload.text}</p>
+          {item.kind === "channel_thread" ? (
+            <ol className="space-y-1 text-sm" aria-label="Chat messages">
+              {item.payload.messages.map((message, index) => (
+                <li key={index} className={cn("rounded-md bg-muted/50 px-2 py-1", message.sent_id && "opacity-60")}>
+                  <span className="font-medium">@{message.username}</span> {message.text}
+                  {message.sent_id ? <span className="ml-1 text-xs text-muted-foreground">(sent)</span> : null}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="whitespace-pre-line text-sm text-muted-foreground">{item.payload.text}</p>
+          )}
           <div className="flex flex-wrap items-center gap-1.5 text-sm">
             <Badge variant="secondary">{who}</Badge>
             {item.tagged_games.map((game) => <Badge key={game.id} variant="outline">{game.name}</Badge>)}
@@ -155,7 +168,7 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
           {item.error && <p className="text-sm text-destructive">{item.error}</p>}
           {editable && (
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button size="sm" onClick={publishNow} disabled={approving}>{approving ? <Loader2 className="animate-spin" /> : <Send />} Publish now</Button>
+              <Button size="sm" onClick={publishNow} disabled={approving}>{approving ? <Loader2 className="animate-spin" /> : <Send />} {item.kind === "channel_thread" ? "Start chat now" : "Publish now"}</Button>
               <Button size="sm" variant="outline" onClick={onEdit}><CalendarClock /> Edit or schedule</Button>
               <Button size="sm" variant="ghost" disabled={rejecting} onClick={() => reject(item.id)}><X /> Reject</Button>
             </div>
@@ -175,6 +188,61 @@ function localInput(value) {
 }
 
 function ItemForm({ item, onDone }) {
+  if (item.kind === "channel_thread") return <ThreadForm item={item} onDone={onDone} />;
+  return <PostForm item={item} onDone={onDone} />;
+}
+
+// A chat's lines can be reworded, or emptied to drop them, before they go out
+function ThreadForm({ item, onDone }) {
+  const [lines, setLines] = useState(item.payload.messages.map((message) => message.text));
+  const [when, setWhen] = useState(item.status === "scheduled" ? localInput(item.scheduled_at) : "");
+  const [save, { isLoading: saving, error }] = useSaveContentMutation();
+  const [approve, { isLoading: approving }] = useApproveContentMutation();
+  const errors = fieldErrors(error);
+  const busy = saving || approving;
+
+  const submit = async (mode) => {
+    try {
+      await save({ id: item.id, messages: lines.map((text) => ({ text })) }).unwrap();
+      if (mode === "save") {
+        toast.success("Chat saved");
+      } else {
+        const result = await approve({ id: item.id, ...(mode === "schedule" && when ? { scheduled_at: new Date(when).toISOString() } : {}) }).unwrap();
+        toast.success(result.message);
+      }
+      onDone();
+    } catch (e) {
+      if (!Object.keys(fieldErrors(e)).length) toast.error(errorMessage(e));
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Edit chat in #{item.payload.channel_name}</DialogTitle>
+        <DialogDescription>Messages go out one at a time, a few minutes apart. Empty a line to drop it.</DialogDescription>
+      </DialogHeader>
+      {item.payload.messages.map((message, index) => (
+        <FormField key={index} label={`@${message.username}`} htmlFor={`t-${index}`}>
+          <Input id={`t-${index}`} maxLength={500} value={lines[index]} disabled={!!message.sent_id}
+            onChange={(e) => setLines((current) => current.map((line, i) => (i === index ? e.target.value : line)))} />
+        </FormField>
+      ))}
+      {errors.messages && <p className="text-sm text-destructive">{errors.messages}</p>}
+      <FormField label="Start at (optional)" htmlFor="t-when" hint="Your own time.">
+        <Input id="t-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+      </FormField>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" disabled={busy} onClick={() => submit("save")}>Save chat</Button>
+        {when
+          ? <Button disabled={busy} onClick={() => submit("schedule")}><CalendarClock /> Schedule</Button>
+          : <Button disabled={busy} onClick={() => submit("now")}>{busy ? <Loader2 className="animate-spin" /> : <Send />} Start chat now</Button>}
+      </DialogFooter>
+    </div>
+  );
+}
+
+function PostForm({ item, onDone }) {
   const { data: agents = [] } = useGetAgentsQuery();
   const [values, setValues] = useState({
     title: item.payload.title ?? "",

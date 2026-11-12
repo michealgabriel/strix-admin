@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Bot, Loader2, Newspaper, PenLine, Wallet } from "lucide-react";
+import { AlertTriangle, Bot, Loader2, MessagesSquare, Newspaper, PenLine, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,14 +74,19 @@ function PipelineCard({ overview }) {
   const [save, { isLoading: saving }] = useSaveSettingsMutation();
   const [run, { isLoading: running }] = useRunTaskMutation();
   const auto = values.autopilot.posts;
+  const chat = values.autopilot.chatter;
   const setPipeline = (key) => (value) => setValues((v) => ({ ...v, pipeline: { ...v.pipeline, [key]: value } }));
-  const setAuto = (key) => (value) => setValues((v) => ({ ...v, autopilot: { posts: { ...v.autopilot.posts, [key]: value } } }));
+  const setAuto = (key) => (value) => setValues((v) => ({ ...v, autopilot: { ...v.autopilot, posts: { ...v.autopilot.posts, [key]: value } } }));
+  const setChat = (key) => (value) => setValues((v) => ({ ...v, autopilot: { ...v.autopilot, chatter: { ...v.autopilot.chatter, [key]: value } } }));
 
   const submit = async () => {
     try {
       await save({
         pipeline: { enabled: values.pipeline.enabled, news_hour: Number(values.pipeline.news_hour) },
-        autopilot: { posts: { ...auto, per_day: Number(auto.per_day), start_hour: Number(auto.start_hour), end_hour: Number(auto.end_hour) } },
+        autopilot: {
+          posts: { ...auto, per_day: Number(auto.per_day), start_hour: Number(auto.start_hour), end_hour: Number(auto.end_hour) },
+          chatter: { ...chat, per_day: Number(chat.per_day), start_hour: Number(chat.start_hour), end_hour: Number(chat.end_hour) },
+        },
         timezone: values.timezone,
       }).unwrap();
       toast.success("Settings saved");
@@ -138,10 +143,22 @@ function PipelineCard({ overview }) {
             </Select>
           </FormField>
         </div>
+        <div className="space-y-3 rounded-lg border p-3">
+          <label className="flex items-center justify-between gap-4 text-sm">
+            <span><span className="font-medium">Channel chatter</span><span className="block text-muted-foreground">Agents chat in Strix channels on their own, a few conversations a day. Players who @mention them get answers either way.</span></span>
+            <Switch checked={chat.enabled} onCheckedChange={setChat("enabled")} aria-label="Channel chatter" />
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            <FormField label="Chats a day" htmlFor="c-per"><Input id="c-per" type="number" min={1} max={24} value={chat.per_day} onChange={(e) => setChat("per_day")(e.target.value)} /></FormField>
+            <FormField label="From hour" htmlFor="c-from"><Input id="c-from" type="number" min={0} max={23} value={chat.start_hour} onChange={(e) => setChat("start_hour")(e.target.value)} /></FormField>
+            <FormField label="Until hour" htmlFor="c-to"><Input id="c-to" type="number" min={1} max={24} value={chat.end_hour} onChange={(e) => setChat("end_hour")(e.target.value)} /></FormField>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={submit} disabled={saving}>{saving && <Loader2 className="animate-spin" />} Save settings</Button>
           <Button variant="outline" disabled={running || !overview.ai_configured} onClick={() => runNow("news")}><Newspaper /> Find news now</Button>
           <Button variant="outline" disabled={running || !overview.ai_configured} onClick={() => runNow("write")}><PenLine /> Write drafts now</Button>
+          <Button variant="outline" disabled={running || !overview.ai_configured} onClick={() => runNow("chatter")}><MessagesSquare /> Write a chat now</Button>
         </div>
         <p className="text-xs text-muted-foreground">
           Stories waiting: {overview.stories?.new ?? 0} · being written: {overview.stories?.writing ?? 0}

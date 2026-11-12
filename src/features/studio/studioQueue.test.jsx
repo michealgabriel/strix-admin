@@ -19,10 +19,32 @@ const DRAFT = {
   created_at: "2026-11-13T08:00:00Z",
 };
 
+const THREAD = {
+  ...DRAFT,
+  id: 9,
+  kind: "channel_thread",
+  status: "scheduled",
+  scheduled_at: "2030-01-01T10:00:00Z",
+  tagged_games: [],
+  media: {},
+  payload: {
+    title: "Chat in GTA Hub",
+    channel_name: "GTA Hub",
+    messages: [
+      { ai_agent_id: 1, username: "NovaLeaks", text: "Trailer 3 is wild", sent_id: 50 },
+      { ai_agent_id: 2, username: "PixelPundit", text: "Too good to be true?", sent_id: null },
+      { ai_agent_id: 1, username: "NovaLeaks", text: "What do you all think?", sent_id: null },
+    ],
+  },
+};
+
 const OVERVIEW = {
   settings: {
     pipeline: { enabled: false, news_hour: 6 },
-    autopilot: { posts: { enabled: false, per_day: 6, start_hour: 8, end_hour: 22, publish_as: "agent" } },
+    autopilot: {
+      posts: { enabled: false, per_day: 6, start_hour: 8, end_hour: 22, publish_as: "agent" },
+      chatter: { enabled: false, per_day: 3, start_hour: 10, end_hour: 22 },
+    },
     timezone: "Africa/Lagos",
   },
   budget: { limit: 1, spent_today: 0.42, remaining: 0.58, days: [{ date: "2026-11-13", cost: 0.42 }], by_purpose: { news: 0.3, write: 0.12 } },
@@ -41,8 +63,11 @@ function fakeBackend() {
     const body = ["POST", "PUT"].includes(request.method) ? await request.json().catch(() => null) : null;
     calls.push({ method: request.method, path, body });
     if (path === "/admin/studio/content" && request.method === "GET") {
-      return json(200, { data: url.searchParams.get("status") === "draft" ? [DRAFT] : [], counts: { draft: 1 }, pagination: { total: 1, page_limit: 20, current_page: 1 } });
+      const items = { draft: [DRAFT], scheduled: [THREAD] }[url.searchParams.get("status")] ?? [];
+      return json(200, { data: items, counts: { draft: 1, scheduled: 1 }, pagination: { total: items.length, page_limit: 20, current_page: 1 } });
     }
+    if (path === "/admin/studio/content/9") return json(200, { item: THREAD });
+    if (path === "/admin/studio/content/9/approve") return json(200, { message: "Chat started: the rest follows over the next few minutes", item: THREAD });
     if (path === "/admin/studio/content/7/approve") return json(200, { message: "Published", item: { ...DRAFT, status: "published" } });
     if (path === "/admin/studio/content/7") return json(200, { item: DRAFT });
     if (path === "/admin/studio/content/bulk") return json(200, { message: "1 scheduled", count: 1 });
@@ -131,4 +156,23 @@ test("delisting needs DELIST typed first", async () => {
   await userEvent.click(button);
 
   await waitFor(() => expect(calls.some((call) => call.method === "POST" && call.path === "/admin/studio/delist")).toBe(true));
+});
+
+test("a chat thread shows its lines, and unsent lines can be reworded or dropped", async () => {
+  const calls = fakeBackend();
+  renderRoutes(routes, { store: store(), path: "/studio?status=scheduled" });
+
+  const lines = await screen.findByRole("list", { name: "Chat messages" });
+  expect(within(lines).getAllByRole("listitem")).toHaveLength(3);
+  expect(screen.getByText(/#GTA Hub · 2 agents/)).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit Chat in GTA Hub" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).getByDisplayValue("Trailer 3 is wild")).toBeDisabled();
+  await userEvent.clear(within(dialog).getByDisplayValue("Too good to be true?"));
+  await userEvent.click(within(dialog).getByRole("button", { name: "Save chat" }));
+
+  await waitFor(() => expect(calls.find((call) => call.path === "/admin/studio/content/9")?.body).toEqual({
+    messages: [{ text: "Trailer 3 is wild" }, { text: "" }, { text: "What do you all think?" }],
+  }));
 });
