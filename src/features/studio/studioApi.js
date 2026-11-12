@@ -1,7 +1,7 @@
 import { api, listQuery, toList } from "@/lib/api";
 
 // The AI agents and the Content studio
-const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioContent", "StudioOverview", "StrixPosts"] }).injectEndpoints({
+const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioContent", "StudioOverview", "StrixPosts", "SourceClips"] }).injectEndpoints({
   endpoints: (build) => ({
     getAgents: build.query({
       query: () => "/admin/ai-agents",
@@ -58,10 +58,31 @@ const studioApi = api.enhanceEndpoints({ addTagTypes: ["AiAgents", "StudioConten
       query: () => ({ url: "/admin/studio/delist", method: "POST", body: { confirm: "DELIST" } }),
       invalidatesTags: ["StudioOverview", "StudioContent", "AiAgents", "StrixPosts"],
     }),
+    getClips: build.query({
+      query: ({ page = 1 } = {}) => listQuery("/admin/studio/clips", { page, limit: 30 }),
+      transformResponse: toList,
+      providesTags: ["SourceClips"],
+    }),
+    addClip: build.mutation({
+      query: (formData) => ({ url: "/admin/studio/clips", method: "POST", body: formData }),
+      invalidatesTags: ["SourceClips"],
+    }),
+    deleteClip: build.mutation({
+      query: (id) => ({ url: `/admin/studio/clips/${id}`, method: "DELETE" }),
+      invalidatesTags: ["SourceClips"],
+    }),
+    makeVideo: build.mutation({
+      query: (id) => ({ url: `/admin/studio/content/${id}/video`, method: "POST" }),
+      invalidatesTags: ["StudioContent", "StudioOverview"],
+    }),
   }),
 });
 
 export const {
+  useGetClipsQuery,
+  useAddClipMutation,
+  useDeleteClipMutation,
+  useMakeVideoMutation,
   useGetAgentsQuery,
   useProvisionAgentsMutation,
   useSaveAgentMutation,

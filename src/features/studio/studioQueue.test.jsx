@@ -176,3 +176,51 @@ test("a chat thread shows its lines, and unsent lines can be reworded or dropped
     messages: [{ text: "Trailer 3 is wild" }, { text: "" }, { text: "What do you all think?" }],
   }));
 });
+
+test("a draft can be turned into a video", async () => {
+  const calls = fakeBackend();
+  const original = globalThis.fetch.getMockImplementation();
+  globalThis.fetch = vi.fn(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    if (new URL(request.url).pathname === "/api/admin/studio/content/7/video") {
+      calls.push({ method: "POST", path: "/admin/studio/content/7/video" });
+      return new Response(JSON.stringify({ message: "The video is being made. It takes a few minutes." }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return original(input);
+  });
+  renderRoutes(routes, { store: store(), path: "/studio" });
+
+  await userEvent.click(await screen.findByRole("button", { name: "Make video" }));
+  await waitFor(() => expect(calls.some((call) => call.path === "/admin/studio/content/7/video")).toBe(true));
+});
+
+test("clips are added by link with their game", async () => {
+  const calls = [];
+  const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  globalThis.fetch = vi.fn(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    const path = new URL(request.url).pathname.replace(/^\/api/, "");
+    const call = { method: request.method, path };
+    if (request.method === "POST") call.form = Object.fromEntries(await request.formData());
+    calls.push(call);
+    if (path === "/admin/studio/clips" && request.method === "GET") return json(200, { data: [], pagination: { total: 0, page_limit: 30, current_page: 1 } });
+    if (path === "/games") return json(200, { data: [{ id: 3, name: "GTA 6" }] });
+    if (path === "/admin/studio/clips") return json(201, { clip: { id: 1 } });
+    return json(404, {});
+  });
+  renderRoutes(routes, { store: store(), path: "/studio?tab=clips" });
+
+  await userEvent.click((await screen.findAllByRole("button", { name: "Add clip" }))[0]);
+  const dialog = await screen.findByRole("dialog");
+  await userEvent.type(within(dialog).getByLabelText(/^Title/), "Trailer 2 beach chase");
+  await userEvent.click(within(dialog).getByRole("combobox", { name: "Game" }));
+  await userEvent.click(await screen.findByRole("option", { name: "GTA 6" }));
+  await userEvent.type(within(dialog).getByLabelText(/Or a direct link/), "https://cdn.example.com/t2.mp4");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Add clip" }));
+
+  await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({
+    title: "Trailer 2 beach chase",
+    system_game_id: "3",
+    url: "https://cdn.example.com/t2.mp4",
+  }));
+});

@@ -91,6 +91,7 @@ function AgentForm({ agent, onDone }) {
     persona: agent.persona,
     bio: agent.user?.bio ?? "",
     active: agent.active,
+    voice: agent.voice ?? "",
     caps: { ...agent.daily_caps },
     avatar: null,
   });
@@ -106,6 +107,7 @@ function AgentForm({ agent, onDone }) {
     form.append("persona", values.persona.trim());
     form.append("bio", values.bio.trim());
     form.append("active", values.active ? "1" : "0");
+    if (values.voice.trim()) form.append("voice", values.voice.trim());
     for (const [key] of CAP_LABELS) form.append(`daily_caps[${key}]`, String(Number(values.caps[key] ?? 0)));
     if (values.avatar) form.append("avatar", values.avatar);
     try {
@@ -139,6 +141,9 @@ function AgentForm({ agent, onDone }) {
       </FormField>
       <FormField label="Bio players see" htmlFor="a-bio" error={errors.bio}>
         <Input id="a-bio" maxLength={300} value={values.bio} onChange={set("bio")} />
+      </FormField>
+      <FormField label="Video voice" htmlFor="a-voice" error={errors.voice} hint="A Google text-to-speech voice name, like en-US-Neural2-J or en-GB-Neural2-B.">
+        <Input id="a-voice" maxLength={60} value={values.voice} onChange={set("voice")} />
       </FormField>
       <FormField label="Daily limits" hint="The most this agent does in a day.">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarClock, Check, ExternalLink, Inbox, Loader2, Pencil, Send, X } from "lucide-react";
+import { CalendarClock, Check, Clapperboard, ExternalLink, Inbox, Loader2, Pencil, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   useBulkContentMutation,
   useGetAgentsQuery,
   useGetContentQuery,
+  useMakeVideoMutation,
   useRejectContentMutation,
   useSaveContentMutation,
 } from "./studioApi";
@@ -115,6 +116,15 @@ export default function QueueTab() {
 function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
   const [approve, { isLoading: approving }] = useApproveContentMutation();
   const [reject, { isLoading: rejecting }] = useRejectContentMutation();
+  const [makeVideo, { isLoading: making }] = useMakeVideoMutation();
+  const video = async () => {
+    try {
+      const result = await makeVideo(item.id).unwrap();
+      toast.success(result.message);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
   const editable = ["draft", "scheduled", "failed"].includes(item.status);
   const who = item.kind === "channel_thread"
     ? `#${item.payload.channel_name} · ${new Set(item.payload.messages.map((m) => m.username)).size} agents`
@@ -133,7 +143,9 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
     <Card>
       <CardContent className="flex flex-col gap-4 sm:flex-row">
         {selectable && <Checkbox className="mt-1" checked={selected} onCheckedChange={onSelect} aria-label={`Select ${item.payload.title}`} />}
-        {item.media?.image_url && <img src={item.media.image_url} alt="" className="aspect-[4/5] w-full shrink-0 rounded-md object-cover sm:w-36" />}
+        {item.media?.video_url
+          ? <video src={item.media.video_url} controls muted aria-label="Post video" className="aspect-[9/16] w-full shrink-0 rounded-md bg-black object-cover sm:w-36" />
+          : item.media?.image_url && <img src={item.media.image_url} alt="" className="aspect-[4/5] w-full shrink-0 rounded-md object-cover sm:w-36" />}
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-start gap-2">
             <h3 className="min-w-0 flex-1 font-semibold leading-snug">{item.payload.title}</h3>
@@ -153,6 +165,11 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
           )}
           <div className="flex flex-wrap items-center gap-1.5 text-sm">
             <Badge variant="secondary">{who}</Badge>
+            {item.media?.render_status && item.media.render_status !== "done" && (
+              <Badge variant={item.media.render_status === "failed" ? "destructive" : "outline"}>
+                <Clapperboard /> {item.media.render_status === "failed" ? "Video failed" : "Making video…"}
+              </Badge>
+            )}
             {item.tagged_games.map((game) => <Badge key={game.id} variant="outline">{game.name}</Badge>)}
             {item.payload.source_url && (
               <a href={item.payload.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
@@ -170,6 +187,9 @@ function ItemCard({ item, selectable, selected, onSelect, onEdit }) {
             <div className="flex flex-wrap gap-2 pt-1">
               <Button size="sm" onClick={publishNow} disabled={approving}>{approving ? <Loader2 className="animate-spin" /> : <Send />} {item.kind === "channel_thread" ? "Start chat now" : "Publish now"}</Button>
               <Button size="sm" variant="outline" onClick={onEdit}><CalendarClock /> Edit or schedule</Button>
+              {item.kind !== "channel_thread" && item.kind !== "video_post" && item.status !== "scheduled" && !["queued", "rendering"].includes(item.media?.render_status) && (
+                <Button size="sm" variant="outline" disabled={making} onClick={video}>{making ? <Loader2 className="animate-spin" /> : <Clapperboard />} Make video</Button>
+              )}
               <Button size="sm" variant="ghost" disabled={rejecting} onClick={() => reject(item.id)}><X /> Reject</Button>
             </div>
           )}

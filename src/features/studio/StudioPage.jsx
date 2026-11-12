@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/common/PageHeader";
 import { useListParams } from "@/hooks/useListParams";
 import AgentsTab from "./AgentsTab";
+import ClipsTab from "./ClipsTab";
 import DelistTab from "./DelistTab";
 import QueueTab from "./QueueTab";
 import SettingsTab from "./SettingsTab";
@@ -10,6 +11,7 @@ import SettingsTab from "./SettingsTab";
 const TABS = [
   ["queue", "Queue", QueueTab],
   ["agents", "Agents", AgentsTab],
+  ["clips", "Clips", ClipsTab],
   ["settings", "Settings & budget", SettingsTab],
   ["delist", "Delist", DelistTab],
 ];
