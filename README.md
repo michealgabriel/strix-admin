@@ -24,6 +24,7 @@ npm run dev             # http://localhost:3000
 
 - **React 19 + Vite**, plain JavaScript.
 - **Routing:** React Router. Every page has its own URL, so pages survive a reload and can be shared.
+- **Signed-out pages:** `/login`, and `/set-password?email=…&token=…`, which new admins and admins whose password was reset open from their email to choose a password. The backend's `ADMIN_APP_URL` must point at this app for those links to work.
 - **Data:** Redux Toolkit with **RTK Query**. `src/lib/api.js` holds the one API client. It adds the token, ends the session on a 401, and turns errors into readable messages. Each feature adds its endpoints with `api.injectEndpoints`, and a failed change shows a toast automatically.
 - **UI:** Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui`. The theme tokens, Strix green and dark mode, are in `src/index.css`. Add a component with `npx shadcn@3 add <name>`.
 - **Live updates:** Pusher, through `pusher-js`. The backend sends the Pusher key and cluster with the admin profile, so there's nothing to configure here. `useRealtimeChannel(name, handlers, onReconnect)` in `src/hooks` subscribes to a private channel while a page is open, and returns whether it's live. Customer Support uses it, and falls back to polling when it isn't live. The connection lives in `src/lib/realtime.js` and closes on sign-out.

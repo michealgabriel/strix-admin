@@ -40,7 +40,7 @@ export default function AdminsTab() {
   const [editing, setEditing] = useState(null);
   const [toDelete, setToDelete] = useState(null);
   const [toReset, setToReset] = useState(null);
-  const [secret, setSecret] = useState(null); // { name, password }
+  const [secret, setSecret] = useState(null); // { name, password, emailed }
   const [remove, removing] = useDeleteAdminMutation();
   const [reset, resetting] = useResetAdminPasswordMutation();
 
@@ -143,7 +143,9 @@ export default function AdminsTab() {
           <DialogHeader>
             <DialogTitle>Temporary password for {secret?.name}</DialogTitle>
             <DialogDescription>
-              Send it to them privately. It is shown only once. They should change it from their account menu after signing in.
+              {secret?.emailed
+                ? "We've emailed them a link to choose their own password (it works once, for 48 hours). If the email doesn't arrive, send them this temporary password privately instead. It is shown only once."
+                : "Send it to them privately. It is shown only once. They should change it from their account menu after signing in."}
             </DialogDescription>
           </DialogHeader>
           {secret && <SecretReveal value={secret.password} />}
@@ -157,13 +159,13 @@ export default function AdminsTab() {
         open={!!toReset}
         onOpenChange={(open) => !open && setToReset(null)}
         title={`Reset ${toReset?.name}'s password?`}
-        description="They are signed out everywhere, and you get a new temporary password to send them."
+        description="They are signed out everywhere and emailed a link to choose a new password. You also get a temporary password, in case the email doesn't arrive."
         confirmLabel="Reset password"
         busy={resetting.isLoading}
         onConfirm={async () => {
           try {
             const result = await reset(toReset.id).unwrap();
-            setSecret({ name: toReset.name, password: result.temporary_password });
+            setSecret({ name: toReset.name, password: result.temporary_password, emailed: result.email_sent });
             setToReset(null);
           } catch {
             // toast from the store
@@ -216,7 +218,7 @@ function AdminForm({ admin, isMe, onDone }) {
       } else {
         const result = await save({ ...body, email: values.email.trim() }).unwrap();
         toast.success("Admin added");
-        onDone({ name: body.name, password: result.temporary_password });
+        onDone({ name: body.name, password: result.temporary_password, emailed: result.email_sent });
       }
     } catch {
       // inline or toast

@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router";
 import PageLoading from "@/components/common/PageLoading";
 import AppLayout from "@/layouts/AppLayout";
 import LoginPage from "@/features/auth/LoginPage";
+import SetPasswordPage from "@/features/auth/SetPasswordPage";
 import { RequireAuth, RequirePermission } from "@/features/auth/RequireAuth";
 import { navItems } from "@/config/navigation";
 import NotFound from "@/pages/NotFound";
@@ -52,6 +53,7 @@ function guardedPage(path, Page) {
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/set-password", element: <SetPasswordPage /> },
   {
     element: <RequireAuth />,
     children: [

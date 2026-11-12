@@ -34,6 +34,10 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
+    // Signed out: from the link in an invite or password reset email
+    setPasswordFromLink: build.mutation({
+      query: (body) => ({ url: "/auth/admin/set-password", method: "POST", body }),
+    }),
     changePassword: build.mutation({
       query: (body) => ({ url: "/auth/admin/password", method: "PUT", body }),
     }),
@@ -54,4 +58,10 @@ export const authApi = api.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useMeQuery, useLogoutMutation, useChangePasswordMutation } = authApi;
+export const {
+  useLoginMutation,
+  useMeQuery,
+  useLogoutMutation,
+  useChangePasswordMutation,
+  useSetPasswordFromLinkMutation,
+} = authApi;
