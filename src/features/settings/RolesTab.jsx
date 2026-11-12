@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,12 +28,12 @@ export default function RolesTab() {
       header: "Role",
       cell: (r) => (
         <div className="min-w-0">
-          <p className="font-medium">{r.name}</p>
+          <p className="font-medium">{r.name} {r.is_full_access && <Badge variant="secondary" className="ml-1"><ShieldCheck /> Full access</Badge>}</p>
           {r.description && <p className="truncate text-sm text-muted-foreground">{r.description}</p>}
         </div>
       ),
     },
-    { key: "permissions", header: "Permissions", cell: (r) => r.permissions?.length ?? 0 },
+    { key: "permissions", header: "Permissions", cell: (r) => (r.is_full_access ? "All" : (r.permissions?.length ?? 0)) },
     ...(canEdit
       ? [
           {
@@ -44,9 +45,11 @@ export default function RolesTab() {
                 <Button variant="ghost" size="icon-sm" aria-label={`Edit ${r.name}`} onClick={() => setEditing(r)}>
                   <Pencil />
                 </Button>
-                <Button variant="ghost" size="icon-sm" aria-label={`Delete ${r.name}`} onClick={() => setToDelete(r)}>
-                  <Trash2 />
-                </Button>
+                {!r.is_full_access && (
+                  <Button variant="ghost" size="icon-sm" aria-label={`Delete ${r.name}`} onClick={() => setToDelete(r)}>
+                    <Trash2 />
+                  </Button>
+                )}
               </div>
             ),
           },
@@ -65,7 +68,7 @@ export default function RolesTab() {
         onRetry={refetch}
         toolbar={
           <>
-            <p className="text-sm text-muted-foreground">A role is a set of permissions. Each admin has one role; the owner has every permission.</p>
+            <p className="text-sm text-muted-foreground">A role is a set of permissions. Each admin has one role. The owner and the Admin role have every permission, including new ones.</p>
             {canEdit && (
               <Button className="sm:ml-auto" onClick={() => setEditing({})}>
                 <Plus /> Add role
@@ -104,6 +107,7 @@ export default function RolesTab() {
 function RoleForm({ role, onDone }) {
   const { data: permissions = [] } = useGetPermissionsQuery();
   const groups = useMemo(() => groupPermissions(permissions), [permissions]);
+  const fullAccess = !!role.is_full_access;
   const [values, setValues] = useState({
     name: role.name ?? "",
     description: role.description ?? "",
@@ -125,7 +129,7 @@ function RoleForm({ role, onDone }) {
         id: role.id,
         name: values.name.trim(),
         description: values.description.trim() || null,
-        permission_ids: [...values.permission_ids],
+        ...(fullAccess ? {} : { permission_ids: [...values.permission_ids] }),
       }).unwrap();
       toast.success(role.id ? "Role updated" : "Role added");
       onDone();
@@ -147,18 +151,28 @@ function RoleForm({ role, onDone }) {
       </FormField>
       <div className="space-y-3">
         <p className="text-sm font-medium">
-          Permissions <span className="font-normal text-muted-foreground">({values.permission_ids.size} selected)</span>
+          Permissions{" "}
+          <span className="font-normal text-muted-foreground">
+            ({fullAccess ? `all ${permissions.length}` : `${values.permission_ids.size} of ${permissions.length} selected`})
+          </span>
         </p>
+        {fullAccess && (
+          <p className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0" />
+            The Admin role has full access, like the owner. It always has every permission, including ones added later, so they can't be turned off here.
+          </p>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           {groups.map((group) => {
             const ids = group.items.map((p) => p.id);
-            const all = ids.every((id) => values.permission_ids.has(id));
-            const some = !all && ids.some((id) => values.permission_ids.has(id));
+            const has = (id) => fullAccess || values.permission_ids.has(id);
+            const all = ids.every(has);
+            const some = !all && ids.some(has);
             return (
               <fieldset key={group.label} className="space-y-2 rounded-lg border p-3">
                 <legend className="sr-only">{group.label}</legend>
                 <label className="flex items-center gap-2 text-sm font-medium">
-                  <Checkbox checked={all ? true : some ? "indeterminate" : false} onCheckedChange={(on) => toggle(ids, on === true)} />
+                  <Checkbox disabled={fullAccess} checked={all ? true : some ? "indeterminate" : false} onCheckedChange={(on) => toggle(ids, on === true)} />
                   {group.label}
                 </label>
                 <div className="space-y-1.5 pl-6">
@@ -166,7 +180,8 @@ function RoleForm({ role, onDone }) {
                     <label key={permission.id} className="flex items-start gap-2 text-sm" title={permission.description ?? undefined}>
                       <Checkbox
                         className="mt-0.5"
-                        checked={values.permission_ids.has(permission.id)}
+                        disabled={fullAccess}
+                        checked={has(permission.id)}
                         onCheckedChange={(on) => toggle([permission.id], on === true)}
                       />
                       <span>{permissionLabel(permission.name)}</span>
