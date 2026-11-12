@@ -16,6 +16,8 @@ const ACTIONS = [
   ["POST api/admin/epicclips/{epic_clip_id}/reports/resolve", "Reviewed reports on clip #{epic_clip_id}"],
   ["POST api/admin/posts/{post_id}/reports/resolve", "Reviewed reports on post #{post_id}"],
   ["POST api/admin/posts", "Wrote a Strix post"],
+  ["POST api/admin/ai-agents/provision", "Created the AI agents"],
+  ["POST api/admin/ai-agents/{agent_id}", "Edited AI agent #{agent_id}"],
   ["POST api/admin/posts/{post_id}", "Edited Strix post #{post_id}"],
   ["DELETE api/admin/posts/{post_id}", "Deleted Strix post #{post_id}"],
   ["PUT api/games/{game_id}/objectives/{objective_id}", "Edited an objective of game #{game_id}"],

@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Newspaper,
+  Bot,
   Receipt,
   ShieldAlert,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export const navigation = [
     label: "Engagement",
     items: [
       { label: "Strix posts", path: "/posts", icon: Newspaper, permission: "manage_strix_posts" },
+      { label: "Content studio", path: "/studio", icon: Bot, permission: "manage_ai_content" },
       { label: "Push campaigns", path: "/campaigns", icon: Megaphone, permission: "send_push_campaigns" },
     ],
   },
