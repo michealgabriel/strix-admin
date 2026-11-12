@@ -31,6 +31,7 @@ const pages = {
 
 // Pages inside an area, guarded like the area's main page
 const extraRoutes = [
+  { path: "games/import", parent: "/games", Page: lazy(() => import("@/features/games/GameImportPage")) },
   { path: "players/:playerId", parent: "/players", Page: lazy(() => import("@/features/players/PlayerDetailPage")) },
   { path: "campaigns/new", parent: "/campaigns", Page: lazy(() => import("@/features/campaigns/CampaignEditorPage")) },
   { path: "campaigns/:campaignId", parent: "/campaigns", Page: lazy(() => import("@/features/campaigns/CampaignEditorPage")) },

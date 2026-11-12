@@ -24,6 +24,7 @@ npm run dev             # http://localhost:3000
 
 - **React 19 + Vite**, plain JavaScript.
 - **Routing:** React Router. Every page has its own URL, so pages survive a reload and can be shared.
+- **Importing games:** Games → Import from JSON (`/games/import`) reads a file like `mobile_games_v3.json` in the browser, matches each game to Strix by name, and shows it as an editable card with its own cover picker. Import then creates missing genres and saves each game and its objectives one at a time, so a failure only affects its own card and can be retried. Existing games are updated; their objectives that aren't in the file are kept.
 - **Signed-out pages:** `/login`, and `/set-password?email=…&token=…`, which new admins and admins whose password was reset open from their email to choose a password. The backend's `ADMIN_APP_URL` must point at this app for those links to work.
 - **Data:** Redux Toolkit with **RTK Query**. `src/lib/api.js` holds the one API client. It adds the token, ends the session on a 401, and turns errors into readable messages. Each feature adds its endpoints with `api.injectEndpoints`, and a failed change shows a toast automatically.
 - **UI:** Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui`. The theme tokens, Strix green and dark mode, are in `src/index.css`. Add a component with `npx shadcn@3 add <name>`.

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ListChecks, Pencil, Plus } from "lucide-react";
+import { FileJson, ListChecks, Pencil, Plus } from "lucide-react";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,9 +58,16 @@ function GamesGrid({ list }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <SearchInput value={search} onChange={(q) => list.set({ q })} placeholder="Search games" />
         <Can permission="create_games">
-          <Button className="sm:ml-auto" onClick={() => setEditing({})}>
-            <Plus /> Add game
-          </Button>
+          <div className="flex gap-2 sm:ml-auto">
+            <Button variant="outline" asChild>
+              <Link to="/games/import">
+                <FileJson /> Import from JSON
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing({})}>
+              <Plus /> Add game
+            </Button>
+          </div>
         </Can>
       </div>
 

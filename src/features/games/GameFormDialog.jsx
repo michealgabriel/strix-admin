@@ -22,14 +22,7 @@ import {
   useGetPlatformsQuery,
   useUpdateGameMutation,
 } from "./gamesApi";
-
-const LINK_FIELDS = [
-  ["android_package", "Android package", "com.supercell.brawlstars"],
-  ["ios_url_scheme", "iOS URL scheme", "brawlstars://"],
-  ["play_store_url", "Play Store link", "https://play.google.com/store/apps/details?id=…"],
-  ["app_store_url", "App Store link", "https://apps.apple.com/app/…"],
-  ["deep_link_template", "Deep link template", "brawlstars://friend?tag={gamer_id}"],
-];
+import { LINK_FIELDS } from "./gameFields";
 
 function initialValues(game) {
   return {

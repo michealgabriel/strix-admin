@@ -1,6 +1,6 @@
 import { api, listQuery, toList } from "@/lib/api";
 
-const gamesApi = api.enhanceEndpoints({ addTagTypes: ["Games", "Objectives", "Genres"] }).injectEndpoints({
+export const gamesApi = api.enhanceEndpoints({ addTagTypes: ["Games", "Objectives", "Genres"] }).injectEndpoints({
   endpoints: (build) => ({
     getGames: build.query({
       query: ({ page = 1, search = "", limit = 12 } = {}) => listQuery("/games", { page, search, limit }),
@@ -23,6 +23,16 @@ const gamesApi = api.enhanceEndpoints({ addTagTypes: ["Games", "Objectives", "Ge
     addObjective: build.mutation({
       query: ({ gameId, ...body }) => ({ url: `/games/${gameId}/objectives`, method: "POST", body }),
       invalidatesTags: (result, error, { gameId }) => [{ type: "Objectives", id: gameId }],
+    }),
+    updateObjective: build.mutation({
+      query: ({ gameId, objectiveId, ...body }) => ({ url: `/games/${gameId}/objectives/${objectiveId}`, method: "PUT", body }),
+      invalidatesTags: (result, error, { gameId }) => [{ type: "Objectives", id: gameId }],
+    }),
+    // Every game, for matching an imported file by name
+    getAllGames: build.query({
+      query: () => listQuery("/games", { page: 1, limit: 500 }),
+      transformResponse: (response) => toList(response).items,
+      providesTags: ["Games"],
     }),
     deleteObjective: build.mutation({
       query: ({ gameId, objectiveId }) => ({ url: `/games/${gameId}/objectives/${objectiveId}`, method: "DELETE" }),
@@ -51,7 +61,9 @@ export const {
   useUpdateGameMutation,
   useGetObjectivesQuery,
   useAddObjectiveMutation,
+  useUpdateObjectiveMutation,
   useDeleteObjectiveMutation,
+  useGetAllGamesQuery,
   useGetPlatformsQuery,
   useGetGenresQuery,
   useSaveGenreMutation,
