@@ -229,6 +229,32 @@ test("clips are added by link with their game", async () => {
   }));
 });
 
+test("a clip can be general, with no game", async () => {
+  const calls = [];
+  const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  globalThis.fetch = vi.fn(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    const path = new URL(request.url).pathname.replace(/^\/api/, "");
+    const call = { method: request.method, path };
+    if (request.method === "POST") call.form = Object.fromEntries(await request.formData());
+    calls.push(call);
+    if (path === "/admin/studio/clips" && request.method === "GET") return json(200, { data: [], pagination: { total: 0, page_limit: 30, current_page: 1 } });
+    if (path === "/games") return json(200, { data: [{ id: 3, name: "Free Fire" }] });
+    if (path === "/admin/studio/clips") return json(201, { clip: { id: 1 } });
+    return json(404, {});
+  });
+  renderRoutes(routes, { store: store(), path: "/studio?tab=clips" });
+
+  await userEvent.click((await screen.findAllByRole("button", { name: "Add clip" }))[0]);
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).getByRole("combobox", { name: "Game" })).toHaveTextContent("No game (general)");
+  await userEvent.type(within(dialog).getByLabelText(/^Title/), "GTA 6 gameplay: An Extended Look");
+  await userEvent.type(within(dialog).getByLabelText(/Or a direct link/), "https://videos.example.com/gta6.mp4");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Add clip" }));
+
+  await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({ title: "GTA 6 gameplay: An Extended Look", url: "https://videos.example.com/gta6.mp4" }));
+});
+
 test("drafts are checked, then imported, and bad lines are listed", async () => {
   const calls = [];
   const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });

@@ -42,7 +42,7 @@ export default function ClipsTab() {
         <Button className="sm:ml-auto" onClick={() => setAdding(true)}><Plus /> Add clip</Button>
       </div>
       {isLoading ? <Skeleton className="h-40" /> : !data?.items.length ? (
-        <EmptyState icon={Clapperboard} title="No clips yet" description="Add footage for a game, then use Make video on a draft about that game." />
+        <EmptyState icon={Clapperboard} title="No clips yet" description="Add footage for a game, or general footage, then use Make video on a draft." />
       ) : (
         <div className="space-y-2">
           {data.items.map((clip) => (
@@ -52,7 +52,7 @@ export default function ClipsTab() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{clip.title}</p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {clip.game?.name}{clip.duration_seconds ? ` · ${clip.duration_seconds}s` : ""}{clip.source_note ? ` · ${clip.source_note}` : ""}
+                    {clip.game?.name ?? "General"}{clip.duration_seconds ? ` · ${clip.duration_seconds}s` : ""}{clip.source_note ? ` · ${clip.source_note}` : ""}
                   </p>
                 </div>
                 {clip.videos_made > 0 && <Badge variant="outline">{clip.videos_made} videos</Badge>}
@@ -109,7 +109,7 @@ function ClipForm({ onDone }) {
     event.preventDefault();
     const form = new FormData();
     form.append("title", values.title.trim());
-    form.append("system_game_id", values.system_game_id);
+    if (values.system_game_id) form.append("system_game_id", values.system_game_id);
     if (values.file) form.append("file", values.file);
     else if (values.url.trim()) form.append("url", values.url.trim());
     if (values.source_note.trim()) form.append("source_note", values.source_note.trim());
@@ -132,10 +132,13 @@ function ClipForm({ onDone }) {
       <FormField label="Title" htmlFor="cl-title" error={errors.title} hint="Say what's in it: the agents pick clips by this.">
         <Input id="cl-title" maxLength={200} value={values.title} onChange={set("title")} placeholder="GTA 6 trailer 2: Vice City beach and car chase" required />
       </FormField>
-      <FormField label="Game" error={errors.system_game_id}>
-        <Select value={values.system_game_id} onValueChange={set("system_game_id")}>
-          <SelectTrigger className="w-full" aria-label="Game"><SelectValue placeholder="Choose a game" /></SelectTrigger>
-          <SelectContent>{(games?.items ?? []).map((game) => <SelectItem key={game.id} value={String(game.id)}>{game.name}</SelectItem>)}</SelectContent>
+      <FormField label="Game (optional)" error={errors.system_game_id} hint="General clips (no game) can be used by any post, like news about a game that isn't on Strix.">
+        <Select value={values.system_game_id || "general"} onValueChange={(value) => set("system_game_id")(value === "general" ? "" : value)}>
+          <SelectTrigger className="w-full" aria-label="Game"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="general">No game (general)</SelectItem>
+            {(games?.items ?? []).map((game) => <SelectItem key={game.id} value={String(game.id)}>{game.name}</SelectItem>)}
+          </SelectContent>
         </Select>
       </FormField>
       <FormField label="Video file" error={fileError ?? errors.file}>
@@ -156,7 +159,7 @@ function ClipForm({ onDone }) {
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={isLoading}>Cancel</Button>
-        <Button type="submit" disabled={isLoading || !values.title || !values.system_game_id || (!values.file && !values.url)}>
+        <Button type="submit" disabled={isLoading || !values.title || (!values.file && !values.url)}>
           {isLoading && <Loader2 className="animate-spin" />} Add clip
         </Button>
       </DialogFooter>
