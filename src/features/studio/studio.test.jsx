@@ -39,7 +39,7 @@ const store = () => makeStore({ token: "tok", permissions: ["manage_ai_content"]
 
 test("with no agents yet, the admin can create them", async () => {
   const calls = fakeBackend({ agents: [] });
-  renderRoutes(routes, { store: store(), path: "/studio" });
+  renderRoutes(routes, { store: store(), path: "/studio?tab=agents" });
 
   await userEvent.click(await screen.findByRole("button", { name: "Create the agents" }));
   await waitFor(() => expect(calls.some((call) => call.path === "/admin/ai-agents/provision")).toBe(true));
@@ -47,7 +47,7 @@ test("with no agents yet, the admin can create them", async () => {
 
 test("an agent's persona, limits and active switch are saved", async () => {
   const calls = fakeBackend();
-  renderRoutes(routes, { store: store(), path: "/studio" });
+  renderRoutes(routes, { store: store(), path: "/studio?tab=agents" });
 
   expect(await screen.findByText(/1 posts today/)).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Edit Nova · Leaks & news" }));
