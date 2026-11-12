@@ -2,6 +2,12 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import GameImportPage from "./GameImportPage";
 import { makeStore, renderRoutes } from "@/test/utils";
+import { imageSize } from "@/lib/imageSize";
+
+// jsdom can't decode images, so the size reader is faked: files named "wide…" are 800 × 500, the rest 500 × 500
+vi.mock("@/lib/imageSize", () => ({
+  imageSize: vi.fn(async (file) => (file.name.startsWith("wide") ? { width: 800, height: 500 } : { width: 500, height: 500 })),
+}));
 
 const FILE = JSON.stringify({
   mobile_games: [
@@ -180,4 +186,17 @@ test("a failed game is retried without being created twice", async () => {
     "POST /games/50",
     "POST /games/50/objectives",
   ]);
+});
+
+test("a cover that isn't 500 × 500 is refused", async () => {
+  fakeBackend();
+  renderRoutes(routes, { store: store(), path: "/games/import" });
+
+  await uploadFile();
+  const amongUs = screen.getByRole("group", { name: "Among Us" });
+  await userEvent.upload(within(amongUs).getByLabelText(/Choose an image/), new File(["png"], "wide.png", { type: "image/png" }));
+
+  expect(await within(amongUs).findByText("The image must be exactly 500 × 500 pixels. This one is 800 × 500.")).toBeInTheDocument();
+  expect(within(amongUs).getByText("Choose a cover image.")).toBeInTheDocument();
+  expect(imageSize).toHaveBeenCalled();
 });

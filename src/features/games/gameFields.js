@@ -18,3 +18,6 @@ export function gameFormData({ name, system_game_platform_id, system_game_genre_
   for (const [key] of LINK_FIELDS) form.append(key, links?.[key] ?? "");
   return form;
 }
+
+// Game covers are square, exactly this size. The server checks it too.
+export const COVER_SIZE = { width: 500, height: 500 };

@@ -18,7 +18,7 @@ import SearchInput from "@/components/common/SearchInput";
 import { useCan } from "@/features/auth/useCan";
 import { errorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { gameFormData, LINK_FIELDS } from "./gameFields";
+import { COVER_SIZE, gameFormData, LINK_FIELDS } from "./gameFields";
 import {
   gamesApi,
   useAddObjectiveMutation,
@@ -475,7 +475,7 @@ function ImportCard({ row, problems, platforms, genres, disabled, onChange }) {
 
       <fieldset disabled={disabled} className="grid gap-4 p-4 md:grid-cols-[180px_1fr]">
         <FormField label={row.existingGame ? "Cover image (optional)" : "Cover image"}>
-          <ImageUpload value={row.cover} onChange={(cover) => onChange({ cover })} currentUrl={row.existingGame?.cover_image} />
+          <ImageUpload value={row.cover} onChange={(cover) => onChange({ cover })} currentUrl={row.existingGame?.cover_image} size={COVER_SIZE} />
         </FormField>
 
         <div className="min-w-0 space-y-4">

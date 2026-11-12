@@ -22,7 +22,7 @@ import {
   useGetPlatformsQuery,
   useUpdateGameMutation,
 } from "./gamesApi";
-import { LINK_FIELDS } from "./gameFields";
+import { COVER_SIZE, LINK_FIELDS } from "./gameFields";
 
 function initialValues(game) {
   return {
@@ -85,6 +85,7 @@ function GameForm({ game, onDone }) {
           onChange={set("cover_image")}
           currentUrl={game?.cover_image}
           invalid={!!errors.cover_image}
+          size={COVER_SIZE}
         />
       </FormField>
 
