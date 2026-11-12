@@ -28,6 +28,7 @@ const ACTIONS = [
   ["POST api/admin/studio/clips", "Added a clip to the library"],
   ["DELETE api/admin/studio/clips/{clip_id}", "Removed clip #{clip_id}"],
   ["POST api/admin/studio/delist", "Delisted all AI content"],
+  ["PATCH api/admin/bug-reports/{report_id}", "Updated bug report #{report_id}"],
   ["POST api/admin/posts/{post_id}", "Edited Strix post #{post_id}"],
   ["DELETE api/admin/posts/{post_id}", "Deleted Strix post #{post_id}"],
   ["PUT api/games/{game_id}/objectives/{objective_id}", "Edited an objective of game #{game_id}"],

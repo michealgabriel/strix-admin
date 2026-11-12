@@ -15,6 +15,7 @@ import {
   Megaphone,
   Newspaper,
   Bot,
+  Bug,
   Receipt,
   ShieldAlert,
 } from "lucide-react";
@@ -42,6 +43,7 @@ export const navigation = [
       { label: "Players", path: "/players", icon: Users, permission: "view_users" },
       { label: "Channels", path: "/channels", icon: MessagesSquare, permission: "view_channels" },
       { label: "Reports", path: "/reports", icon: ShieldAlert, permission: ["moderate_posts", "view_epic_clips"] },
+      { label: "Bug reports", path: "/bug-reports", icon: Bug, permission: "manage_bug_reports", badge: "newBugReports" },
     ],
   },
   {

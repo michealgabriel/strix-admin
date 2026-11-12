@@ -15,7 +15,7 @@ const AREAS = [
   ["AI agents", ["manage_ai_content"]],
   ["Shop & orders", ["view_shop_sale_items", "edit_shop_sale_items", "view_orders", "manage_orders"]],
   ["Game top-ups", ["view_game_topups", "create_game_topups", "edit_game_topups", "disable_game_topups", "view_topup_purchases", "process_topup_purchases"]],
-  ["Support", ["manage_customer_supports"]],
+  ["Support", ["manage_customer_supports", "manage_bug_reports"]],
   [
     "Settings & admins",
     ["manage_system_countries", "view_system_admins", "create_system_admins", "edit_system_admins", "delete_system_admins", "view_roles", "edit_roles", "view_activity_log"],
@@ -42,6 +42,7 @@ const LABELS = {
   view_topup_purchases: "View top-up purchases",
   process_topup_purchases: "Deliver or decline top-ups",
   manage_customer_supports: "Answer support chats",
+  manage_bug_reports: "Read and resolve bug reports",
   manage_system_countries: "Manage countries",
   view_system_admins: "View admins",
   create_system_admins: "Add admins",

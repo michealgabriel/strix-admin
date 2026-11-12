@@ -1,6 +1,7 @@
 import { NavLink } from "react-router";
 import { navigation } from "@/config/navigation";
 import { useCan } from "@/features/auth/useCan";
+import { useGetBugReportCountsQuery } from "@/features/bugs/bugReportsApi";
 import { cn } from "@/lib/utils";
 
 function NavItem({ item, onNavigate }) {
@@ -22,7 +23,19 @@ function NavItem({ item, onNavigate }) {
     >
       <Icon className="size-4 shrink-0" />
       {item.label}
+      {item.badge === "newBugReports" && <NewBugReports />}
     </NavLink>
+  );
+}
+
+// How many bug reports nobody has looked at yet
+function NewBugReports() {
+  const { data } = useGetBugReportCountsQuery(undefined, { pollingInterval: 120_000 });
+  if (!data?.new) return null;
+  return (
+    <span className="ml-auto rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums" aria-label={`${data.new} new`}>
+      {data.new > 99 ? "99+" : data.new}
+    </span>
   );
 }
 
