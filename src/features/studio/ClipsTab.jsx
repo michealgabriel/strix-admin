@@ -15,6 +15,7 @@ import Pagination from "@/components/common/Pagination";
 import { useGetGamesQuery } from "@/features/games/gamesApi";
 import { useListParams } from "@/hooks/useListParams";
 import { errorMessage, fieldErrors } from "@/lib/api";
+import { formatDuration, parseDuration, readVideoLength } from "./duration";
 import { useAddClipMutation, useAddMusicMutation, useDeleteClipMutation, useDeleteMusicMutation, useGetClipsQuery, useGetMusicQuery } from "./studioApi";
 
 const MAX_MB = 20;
@@ -52,7 +53,7 @@ export default function ClipsTab() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{clip.title}</p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {clip.game?.name ?? "General"}{clip.duration_seconds ? ` · ${clip.duration_seconds}s` : ""}{clip.source_note ? ` · ${clip.source_note}` : ""}
+                    {clip.game?.name ?? "General"}{clip.duration_seconds ? ` · ${formatDuration(clip.duration_seconds)}` : ""}{clip.source_note ? ` · ${clip.source_note}` : ""}
                   </p>
                 </div>
                 {clip.videos_made > 0 && <Badge variant="outline">{clip.videos_made} videos</Badge>}
@@ -93,9 +94,20 @@ function ClipForm({ onDone }) {
   const { data: games } = useGetGamesQuery({ limit: 100 });
   const [values, setValues] = useState({ title: "", system_game_id: "", url: "", source_note: "", duration_seconds: "", file: null });
   const [fileError, setFileError] = useState(null);
+  const [reading, setReading] = useState(null); // null, "reading" or "failed"
   const [add, { isLoading, error }] = useAddClipMutation();
   const errors = fieldErrors(error);
   const set = (key) => (e) => setValues((v) => ({ ...v, [key]: e?.target ? e.target.value : e }));
+  const seconds = parseDuration(values.duration_seconds);
+  const lengthProblem = values.duration_seconds.trim() && seconds === null ? "Write it like 24:05, 1:02:30 or 1445." : null;
+
+  // Fills in the length from the video itself, unless one was typed
+  const detectLength = async (source) => {
+    setReading("reading");
+    const found = await readVideoLength(source);
+    setReading(found ? null : "failed");
+    if (found) setValues((v) => (v.duration_seconds.trim() ? v : { ...v, duration_seconds: formatDuration(found) }));
+  };
 
   const pick = (file) => {
     setFileError(null);
@@ -103,6 +115,7 @@ function ClipForm({ onDone }) {
     if (file.type !== "video/mp4") return setFileError("Use an MP4 video.");
     if (file.size > MAX_MB * 1024 * 1024) return setFileError(`Uploads must be under ${MAX_MB} MB. Use a direct link for bigger files.`);
     setValues((v) => ({ ...v, file }));
+    detectLength(file);
   };
 
   const submit = async (event) => {
@@ -113,7 +126,7 @@ function ClipForm({ onDone }) {
     if (values.file) form.append("file", values.file);
     else if (values.url.trim()) form.append("url", values.url.trim());
     if (values.source_note.trim()) form.append("source_note", values.source_note.trim());
-    if (values.duration_seconds) form.append("duration_seconds", values.duration_seconds);
+    if (seconds) form.append("duration_seconds", String(seconds));
     try {
       await add(form).unwrap();
       toast.success("Clip added");
@@ -146,20 +159,28 @@ function ClipForm({ onDone }) {
       </FormField>
       {!values.file && (
         <FormField label="Or a direct link" htmlFor="cl-url" error={errors.url} hint="An https link straight to an .mp4 file.">
-          <Input id="cl-url" type="url" value={values.url} onChange={set("url")} placeholder="https://…/trailer.mp4" />
+          <Input id="cl-url" type="url" value={values.url} onChange={set("url")} placeholder="https://…/trailer.mp4"
+            onBlur={() => /^https:\/\/\S+$/.test(values.url.trim()) && detectLength(values.url.trim())} />
         </FormField>
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField label="Where it's from" htmlFor="cl-note" error={errors.source_note}>
           <Input id="cl-note" maxLength={300} value={values.source_note} onChange={set("source_note")} placeholder="Rockstar press kit" />
         </FormField>
-        <FormField label="Length in seconds" htmlFor="cl-len" error={errors.duration_seconds} hint="Helps the agents pick good cuts.">
-          <Input id="cl-len" type="number" min={3} max={3600} value={values.duration_seconds} onChange={set("duration_seconds")} />
+        <FormField
+          label="Length"
+          htmlFor="cl-len"
+          error={lengthProblem ?? errors.duration_seconds}
+          hint={reading === "reading" ? "Reading the length from the video…"
+            : reading === "failed" ? "Couldn't read it from the video. Type it, like 24:05."
+            : seconds ? `${seconds} seconds. Helps the agents pick good cuts.` : "Filled in from the video, or type it like 24:05."}
+        >
+          <Input id="cl-len" inputMode="numeric" placeholder="24:05" value={values.duration_seconds} onChange={set("duration_seconds")} />
         </FormField>
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={isLoading}>Cancel</Button>
-        <Button type="submit" disabled={isLoading || !values.title || (!values.file && !values.url)}>
+        <Button type="submit" disabled={isLoading || !!lengthProblem || !values.title || (!values.file && !values.url)}>
           {isLoading && <Loader2 className="animate-spin" />} Add clip
         </Button>
       </DialogFooter>

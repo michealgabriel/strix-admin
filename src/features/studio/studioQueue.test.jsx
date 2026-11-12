@@ -3,6 +3,12 @@ import userEvent from "@testing-library/user-event";
 import StudioPage from "./StudioPage";
 import { makeStore, renderRoutes } from "@/test/utils";
 
+// jsdom can't load video metadata: links read as 26:48, files fail to read
+vi.mock("./duration", async (importOriginal) => ({
+  ...(await importOriginal()),
+  readVideoLength: vi.fn(async (source) => (typeof source === "string" ? 1608 : null)),
+}));
+
 const DRAFT = {
   id: 7,
   kind: "image_post",
@@ -220,12 +226,17 @@ test("clips are added by link with their game", async () => {
   await userEvent.click(within(dialog).getByRole("combobox", { name: "Game" }));
   await userEvent.click(await screen.findByRole("option", { name: "GTA 6" }));
   await userEvent.type(within(dialog).getByLabelText(/Or a direct link/), "https://cdn.example.com/t2.mp4");
+  await userEvent.tab();
+  // The length is read from the link and shown as minutes and seconds
+  expect(await within(dialog).findByDisplayValue("26:48")).toBeInTheDocument();
+  expect(within(dialog).getByText(/1608 seconds/)).toBeInTheDocument();
   await userEvent.click(within(dialog).getByRole("button", { name: "Add clip" }));
 
   await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({
     title: "Trailer 2 beach chase",
     system_game_id: "3",
     url: "https://cdn.example.com/t2.mp4",
+    duration_seconds: "1608",
   }));
 });
 
@@ -249,10 +260,15 @@ test("a clip can be general, with no game", async () => {
   const dialog = await screen.findByRole("dialog");
   expect(within(dialog).getByRole("combobox", { name: "Game" })).toHaveTextContent("No game (general)");
   await userEvent.type(within(dialog).getByLabelText(/^Title/), "GTA 6 gameplay: An Extended Look");
+  await userEvent.type(within(dialog).getByLabelText(/^Length/), "24:05");
   await userEvent.type(within(dialog).getByLabelText(/Or a direct link/), "https://videos.example.com/gta6.mp4");
+  await userEvent.tab();
+  // A typed length isn't replaced by the one read from the video
+  expect(within(dialog).getByDisplayValue("24:05")).toBeInTheDocument();
+  expect(await within(dialog).findByText(/1445 seconds/)).toBeInTheDocument();
   await userEvent.click(within(dialog).getByRole("button", { name: "Add clip" }));
 
-  await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({ title: "GTA 6 gameplay: An Extended Look", url: "https://videos.example.com/gta6.mp4" }));
+  await waitFor(() => expect(calls.find((call) => call.method === "POST")?.form).toEqual({ title: "GTA 6 gameplay: An Extended Look", url: "https://videos.example.com/gta6.mp4", duration_seconds: "1445" }));
 });
 
 test("drafts are checked, then imported, and bad lines are listed", async () => {
