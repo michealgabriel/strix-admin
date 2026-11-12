@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/common/SearchableSelect";
 import FormField from "@/components/common/FormField";
 import ImageUpload from "@/components/common/ImageUpload";
 import { useGetGamesQuery } from "@/features/games/gamesApi";
@@ -80,10 +81,14 @@ function TournamentForm({ tournament, onDone }) {
       </FormField>
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Game" error={errors.game_id}>
-          <Select value={values.game_id} onValueChange={set("game_id")} required>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Choose a game" /></SelectTrigger>
-            <SelectContent>{(games?.items ?? []).map((g) => <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>)}</SelectContent>
-          </Select>
+          <SearchableSelect
+            label="Game"
+            value={values.game_id}
+            onChange={set("game_id")}
+            placeholder="Choose a game"
+            searchPlaceholder="Type a game's name"
+            options={(games?.items ?? []).map((g) => ({ value: String(g.id), label: g.name }))}
+          />
         </FormField>
         <FormField label="Start date" htmlFor="t-start" error={errors.start_date}>
           <Input id="t-start" type="date" required min={tomorrow()} value={values.start_date} onChange={set("start_date")} />

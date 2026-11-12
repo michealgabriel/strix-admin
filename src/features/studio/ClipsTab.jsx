@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import EmptyState from "@/components/common/EmptyState";
+import SearchableSelect from "@/components/common/SearchableSelect";
 import FormField from "@/components/common/FormField";
 import Pagination from "@/components/common/Pagination";
 import { useGetGamesQuery } from "@/features/games/gamesApi";
@@ -146,13 +147,13 @@ function ClipForm({ onDone }) {
         <Input id="cl-title" maxLength={200} value={values.title} onChange={set("title")} placeholder="GTA 6 trailer 2: Vice City beach and car chase" required />
       </FormField>
       <FormField label="Game (optional)" error={errors.system_game_id} hint="General clips (no game) can be used by any post, like news about a game that isn't on Strix.">
-        <Select value={values.system_game_id || "general"} onValueChange={(value) => set("system_game_id")(value === "general" ? "" : value)}>
-          <SelectTrigger className="w-full" aria-label="Game"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="general">No game (general)</SelectItem>
-            {(games?.items ?? []).map((game) => <SelectItem key={game.id} value={String(game.id)}>{game.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          label="Game"
+          value={values.system_game_id}
+          onChange={set("system_game_id")}
+          searchPlaceholder="Type a game's name"
+          options={[{ value: "", label: "No game (general)" }, ...(games?.items ?? []).map((game) => ({ value: String(game.id), label: game.name }))]}
+        />
       </FormField>
       <FormField label="Video file" error={fileError ?? errors.file}>
         <Input type="file" accept="video/mp4" aria-label="Video file" onChange={(e) => pick(e.target.files?.[0])} />
