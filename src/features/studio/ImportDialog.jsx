@@ -22,7 +22,8 @@ const EXAMPLE = `{
         "segments": [{ "start": 3, "end": 9 }],
         "overlays": [{ "text": "TRAILER 3", "start": 0, "end": 3 }],
         "voiceover": "Trailer three just dropped…",
-        "music": "Hype beat 1"
+        "music": "Hype beat 1",
+        "format": "vertical"
       }
     }
   ],

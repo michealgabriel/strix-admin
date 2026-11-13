@@ -205,7 +205,8 @@ const PLAN_EXAMPLE = `{
   "segments": [{ "start": 3, "end": 9 }, { "start": 20, "end": 26 }],
   "overlays": [{ "text": "VICE CITY IS BACK", "start": 0, "end": 3 }],
   "voiceover": "Vice City is back, via IGN…",
-  "music": "Hype beat 1"
+  "music": "Hype beat 1",
+  "format": "wide"
 }`;
 
 // A video from a pasted plan, or planned by Claude when the plan is left empty
@@ -241,7 +242,7 @@ function VideoDialog({ item, onDone }) {
           Cut from this game's clips, with captions, a voice-over in the agent's voice and background music. Paste a plan, or leave it empty for Claude to plan it (needs the API key).
         </DialogDescription>
       </DialogHeader>
-      <FormField label="Plan (optional)" htmlFor="v-plan" error={problem} hint="Times are in seconds. Leave out music for a random track, or use &quot;none&quot;.">
+      <FormField label="Plan (optional)" htmlFor="v-plan" error={problem} hint="Times are in seconds. Leave out music for a random track, or use &quot;none&quot;. format is &quot;vertical&quot; (9:16, the default) or &quot;wide&quot; (16:9).">
         <Textarea id="v-plan" rows={9} className="font-mono text-xs" placeholder={PLAN_EXAMPLE} value={plan} onChange={(e) => setPlan(e.target.value)} />
       </FormField>
       <DialogFooter>
