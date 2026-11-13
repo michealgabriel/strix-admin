@@ -41,6 +41,7 @@ function TournamentForm({ tournament, onDone }) {
     review_mode: tournament?.review_mode ?? true,
     start_date: tournament?.start_date?.slice(0, 10) ?? tomorrow(),
     strix_gold_entry_fee: String(tournament?.strix_gold_entry_fee ?? 0),
+    stream_url: tournament?.stream_url ?? "",
     graphic_file: null,
   });
   const set = (key) => (e) => setValues((v) => ({ ...v, [key]: e?.target ? e.target.value : e }));
@@ -78,6 +79,9 @@ function TournamentForm({ tournament, onDone }) {
       </FormField>
       <FormField label="Description" htmlFor="t-desc" error={errors.description}>
         <Textarea id="t-desc" rows={3} value={values.description} onChange={set("description")} />
+      </FormField>
+      <FormField label="Stream link (optional)" htmlFor="t-stream" error={errors.stream_url} hint="YouTube, Twitch or Kick, or a direct .m3u8 / .mp4 link. Players watch it on the tournament screen.">
+        <Input id="t-stream" type="url" maxLength={2048} placeholder="https://www.youtube.com/live/…" value={values.stream_url} onChange={set("stream_url")} />
       </FormField>
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Game" error={errors.game_id}>

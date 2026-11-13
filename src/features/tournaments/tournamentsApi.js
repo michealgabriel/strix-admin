@@ -34,6 +34,11 @@ const tournamentsApi = api.enhanceEndpoints({ addTagTypes: ["Tournaments", "Tour
       query: (id) => ({ url: `/tournaments/${id}/start`, method: "POST" }),
       invalidatesTags: (result, error, id) => ["Tournaments", { type: "Tournament", id }],
     }),
+    // Changeable at any stage, e.g. after the host restarts a stream; null removes it
+    setStream: build.mutation({
+      query: ({ id, stream_url }) => ({ url: `/tournaments/${id}/stream`, method: "PATCH", body: { stream_url } }),
+      invalidatesTags: (result, error, { id }) => ["Tournaments", { type: "Tournament", id }],
+    }),
     eliminate: build.mutation({
       query: ({ id, positions }) => ({
         url: `/tournaments/${id}/brackets/eliminations`,
@@ -46,6 +51,7 @@ const tournamentsApi = api.enhanceEndpoints({ addTagTypes: ["Tournaments", "Tour
 });
 
 export const {
+  useSetStreamMutation,
   useGetTournamentsQuery,
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Check, Pencil, Play, Trophy, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, Pencil, Play, Radio, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import FormField from "@/components/common/FormField";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable from "@/components/common/DataTable";
 import EmptyState from "@/components/common/EmptyState";
@@ -21,6 +24,7 @@ import {
   useGetTournamentBracketsQuery,
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
+  useSetStreamMutation,
   useSetTeamStatusMutation,
   useStartTournamentMutation,
 } from "./tournamentsApi";
@@ -32,6 +36,7 @@ export default function TournamentDetailPage() {
   const [editing, setEditing] = useState(false);
   const [starting, setStarting] = useState(false);
   const [start, startState] = useStartTournamentMutation();
+  const [streamOpen, setStreamOpen] = useState(false);
 
   if (error) {
     return (
@@ -68,6 +73,13 @@ export default function TournamentDetailPage() {
                 {t.strix_gold_entry_fee ? `${formatNumber(t.strix_gold_entry_fee)} gold entry` : "free entry"} · starts {formatDate(t.start_date)}
                 {!t.is_strix_tournament && ` · hosted by ${t.user?.username ?? "a player"}`}
               </p>
+              <p className="flex flex-wrap items-center gap-2 text-sm">
+                <Radio className="size-4 text-muted-foreground" />
+                {t.stream_url
+                  ? <a href={t.stream_url} target="_blank" rel="noreferrer" className="inline-flex max-w-md items-center gap-1 truncate text-primary hover:underline">{t.stream_url} <ExternalLink className="size-3 shrink-0" /></a>
+                  : <span className="text-muted-foreground">No stream link</span>}
+                {canEdit && <Button variant="ghost" size="sm" onClick={() => setStreamOpen(true)}>{t.stream_url ? "Change" : "Add"} stream link</Button>}
+              </p>
               {manageable && stage !== "completed" && (
                 <div className="flex flex-wrap gap-2">
                   {stage === "upcoming" && <Button variant="outline" size="sm" onClick={() => setEditing(true)}><Pencil /> Edit</Button>}
@@ -84,6 +96,9 @@ export default function TournamentDetailPage() {
       {t && stage !== "upcoming" && <Teams tournament={t} manageable={false} />}
 
       <TournamentFormDialog open={editing} onOpenChange={setEditing} tournament={t} />
+      <Dialog open={streamOpen} onOpenChange={setStreamOpen}>
+        <DialogContent className="sm:max-w-lg">{streamOpen && t && <StreamForm tournament={t} onDone={() => setStreamOpen(false)} />}</DialogContent>
+      </Dialog>
       <ConfirmDialog
         open={starting}
         onOpenChange={setStarting}
@@ -193,5 +208,38 @@ function Brackets({ tournament, manageable }) {
         }}
       />
     </Card>
+  );
+}
+
+// The stream link can change at any stage, e.g. after a stream restarts; staff can also remove a bad link
+function StreamForm({ tournament, onDone }) {
+  const [url, setUrl] = useState(tournament.stream_url ?? "");
+  const [save, { isLoading, error }] = useSetStreamMutation();
+  const problem = error ? errorMessage(error) : null;
+
+  const submit = async (value) => {
+    try {
+      const result = await save({ id: tournament.id, stream_url: value }).unwrap();
+      toast.success(result.message);
+      onDone();
+    } catch {
+      // shown below
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Stream link</DialogTitle>
+        <DialogDescription>Players watch it on the tournament screen. It can be changed at any time, even while the tournament is live.</DialogDescription>
+      </DialogHeader>
+      <FormField label="Link" htmlFor="s-url" error={problem} hint="YouTube, Twitch or Kick, or a direct .m3u8 / .mp4 link.">
+        <Input id="s-url" type="url" maxLength={2048} placeholder="https://www.youtube.com/live/…" value={url} onChange={(e) => setUrl(e.target.value)} />
+      </FormField>
+      <DialogFooter className="gap-2">
+        {tournament.stream_url && <Button variant="outline" disabled={isLoading} onClick={() => submit(null)}>Remove link</Button>}
+        <Button disabled={isLoading || !url.trim()} onClick={() => submit(url.trim())}>Save</Button>
+      </DialogFooter>
+    </div>
   );
 }
