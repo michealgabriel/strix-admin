@@ -13,7 +13,7 @@ const AREAS = [
   ["Channels", ["view_channels", "create_channels", "edit_channels", "delete_channels", "manage_channel_members"]],
   ["Push notifications", ["send_push_campaigns"]],
   ["AI agents", ["manage_ai_content"]],
-  ["Shop & orders", ["view_shop_sale_items", "edit_shop_sale_items", "view_orders", "manage_orders"]],
+  ["Shop & orders", ["view_shop_sale_items", "edit_shop_sale_items", "view_orders", "manage_orders", "manage_economy"]],
   ["Game top-ups", ["view_game_topups", "create_game_topups", "edit_game_topups", "disable_game_topups", "view_topup_purchases", "process_topup_purchases"]],
   ["Support", ["manage_customer_supports", "manage_bug_reports"]],
   [
@@ -50,6 +50,7 @@ const LABELS = {
   delete_system_admins: "Remove admins",
   view_activity_log: "View the activity log",
   manage_ai_content: "Run the AI agents and the Content studio",
+  manage_economy: "See the economy and change its settings",
 };
 
 export function groupPermissions(permissions) {

@@ -26,6 +26,7 @@ const pages = {
   "/reports": lazy(() => import("@/features/reports/ReportsPage")),
   "/bug-reports": lazy(() => import("@/features/bugs/BugReportsPage")),
   "/orders": lazy(() => import("@/features/orders/OrdersPage")),
+  "/economy": lazy(() => import("@/features/economy/EconomyPage")),
   "/posts": lazy(() => import("@/features/posts/PostsPage")),
   "/studio": lazy(() => import("@/features/studio/StudioPage")),
   "/campaigns": lazy(() => import("@/features/campaigns/CampaignsPage")),

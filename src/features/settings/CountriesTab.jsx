@@ -35,6 +35,11 @@ export default function CountriesTab() {
       header: "Rate",
       cell: (c) => (c.is_base ? "—" : `1 ${base?.currency ?? "base"} = ${c.rate_per_base} ${c.currency}`),
     },
+    {
+      key: "round",
+      header: "Prices round up to",
+      cell: (c) => (c.is_base || !c.price_round_to ? "Exact" : `${c.symbol}${Number(c.price_round_to).toLocaleString()}`),
+    },
     { key: "status", header: "Status", cell: (c) => <StatusBadge status={c.status} /> },
     ...(canManage
       ? [
@@ -65,7 +70,7 @@ export default function CountriesTab() {
         toolbar={
           <>
             <p className="text-sm text-muted-foreground">
-              Countries set the currency and exchange rate for game top-up prices.
+              Countries set the currency and exchange rate players pay in: Gold packs, the VIP pass and game top-ups.
             </p>
             {canManage && (
               <Button className="sm:ml-auto" onClick={() => setEditing({})}>
@@ -91,6 +96,7 @@ function CountryForm({ country, base, onDone }) {
     symbol: country.symbol ?? "",
     rate_per_base: country.rate_per_base ?? "",
     status: country.status ?? "active",
+    price_round_to: country.price_round_to ?? "",
   });
   const [save, { isLoading, error }] = useSaveCountryMutation();
   const errors = fieldErrors(error);
@@ -99,7 +105,12 @@ function CountryForm({ country, base, onDone }) {
   const submit = async (event) => {
     event.preventDefault();
     try {
-      await save({ id: country.id, ...values, currency: values.currency.trim().toUpperCase() }).unwrap();
+      await save({
+        id: country.id,
+        ...values,
+        currency: values.currency.trim().toUpperCase(),
+        price_round_to: values.price_round_to === "" ? null : values.price_round_to,
+      }).unwrap();
       toast.success(country.id ? "Country updated" : "Country added");
       onDone();
     } catch {
@@ -111,7 +122,7 @@ function CountryForm({ country, base, onDone }) {
     <form onSubmit={submit} className="space-y-4">
       <DialogHeader>
         <DialogTitle>{country.id ? `Edit ${country.name}` : "Add a country"}</DialogTitle>
-        <DialogDescription>Players in this country see top-up prices in its currency.</DialogDescription>
+        <DialogDescription>Players in this country see Gold packs and top-ups priced in its currency.</DialogDescription>
       </DialogHeader>
       <FormField label="Country name" htmlFor="c-name" error={errors.name}>
         <Input id="c-name" required value={values.name} onChange={set("name")} />
@@ -141,6 +152,16 @@ function CountryForm({ country, base, onDone }) {
           onChange={set("rate_per_base")}
         />
       </FormField>
+      {!country.is_base && (
+        <FormField
+          label="Round shop prices up to"
+          htmlFor="c-round"
+          error={errors.price_round_to}
+          hint={`Optional. With 100, a pack that converts to ${values.symbol || ""}4,787.47 costs ${values.symbol || ""}4,800. Leave empty for exact prices.`}
+        >
+          <Input id="c-round" type="number" step="any" min="0" placeholder="e.g. 100" value={values.price_round_to} onChange={set("price_round_to")} />
+        </FormField>
+      )}
       <FormField label="Status" error={errors.status}>
         <Select value={values.status} onValueChange={set("status")}>
           <SelectTrigger className="w-full">

@@ -10,6 +10,8 @@ import PageHeader from "@/components/common/PageHeader";
 import { useCan } from "@/features/auth/useCan";
 import { fieldErrors } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
+import { useGetCountriesQuery } from "@/features/settings/settingsApi";
+import { localPrice, worseValuePacks } from "./localPrice";
 import { useGetChestsQuery, useGetGoldPacksQuery, useSaveChestsMutation, useSaveGoldPacksMutation } from "./shopApi";
 
 export default function SaleItemsPage() {
@@ -31,6 +33,11 @@ function GoldPacks() {
   const [save, { isLoading: saving, error }] = useSaveGoldPacksMutation();
   const errors = fieldErrors(error);
   const value = (pack, key) => draft[pack.id]?.[key] ?? pack[key];
+  const { data: countries = [] } = useGetCountriesQuery();
+  const priced = countries.filter((c) => !c.is_base && c.status === "active");
+  // Worked out from what's typed, so a price change shows its effect before saving
+  const current = packs.map((pack) => ({ ...pack, strixgold_quantity: Number(value(pack, "strixgold_quantity")), price_in_dollars: Number(value(pack, "price_in_dollars")) }));
+  const worse = worseValuePacks(current);
   const change = (pack, key, v) => setDraft({ ...draft, [pack.id]: { ...draft[pack.id], [key]: v } });
 
   const submit = async (event) => {
@@ -69,6 +76,18 @@ function GoldPacks() {
                 <label className="space-y-1 text-xs text-muted-foreground">Price (USD)
                   <Input type="number" min={0.01} step={0.01} disabled={!canEdit} value={value(pack, "price_in_dollars")} onChange={(e) => change(pack, "price_in_dollars", e.target.value)} />
                 </label>
+                <div className="col-span-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground tabular-nums">
+                  <span className={worse.has(pack.id) ? "font-medium text-destructive" : undefined}>
+                    {formatNumber(Math.round(current[index].strixgold_quantity / current[index].price_in_dollars))} Gold per $1
+                    {worse.has(pack.id) && " (less than a cheaper pack)"}
+                  </span>
+                  {priced.map((country) => (
+                    <span key={country.id}>
+                      {country.name}: {country.symbol}
+                      {localPrice(current[index].price_in_dollars, country).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </span>
+                  ))}
+                </div>
                 <p className="col-span-3 text-xs text-muted-foreground">
                   Store product: <code>{pack.android_product_id ?? "none"}</code>
                   {pack.ios_product_id ? <> · iOS <code>{pack.ios_product_id}</code></> : null}
@@ -130,6 +149,11 @@ function Chests() {
                       </label>
                     )}
                   </div>
+                  {!free && maxGold(chest) >= Number(draft[chest.id] ?? chest.price_in_strixgold) && (
+                    <p className="text-xs font-medium text-destructive">
+                      This chest can give back {formatNumber(maxGold(chest))} Gold, more than it costs. Raise the price, or lower its Gold on the Economy page.
+                    </p>
+                  )}
                   {chest.odds && (
                     <div className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">
                       {chest.odds.outcomes?.map((o, i) => (
@@ -152,4 +176,10 @@ function Chests() {
       </CardContent>
     </Card>
   );
+}
+
+// The most Gold a chest can give in any outcome
+function maxGold(chest) {
+  const amounts = (chest.odds?.outcomes ?? []).flatMap((o) => o.rewards.filter((r) => r.type === "strixgold").map((r) => r.max));
+  return amounts.length ? Math.max(...amounts) : 0;
 }

@@ -16,6 +16,7 @@ import {
   Newspaper,
   Bot,
   Bug,
+  Coins,
   Receipt,
   ShieldAlert,
 } from "lucide-react";
@@ -59,6 +60,7 @@ export const navigation = [
     items: [
       { label: "Sale Items", path: "/sale-items", icon: ShoppingBag, permission: "view_shop_sale_items" },
       { label: "Orders", path: "/orders", icon: Receipt, permission: "view_orders" },
+      { label: "Economy", path: "/economy", icon: Coins, permission: "manage_economy" },
       { label: "Game Top-up", path: "/game-topup", icon: Wallet, permission: "view_game_topups" },
       { label: "Customer Support", path: "/support", icon: Headset, permission: "manage_customer_supports" },
       {
