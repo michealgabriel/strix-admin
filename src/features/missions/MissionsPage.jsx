@@ -55,30 +55,30 @@ export default function MissionsPage() {
     );
   }
 
-  const weekEnds = power.data?.active?.[0]?.expiration_date;
+  const seasonEnds = power.data?.seasonEndsAt;
 
   return (
     <>
       <PageHeader
         title="Missions"
-        description="Daily missions are picked automatically every day. Power missions are bigger weekly goals you set here."
+        description="Daily missions are picked automatically every day. Power missions are bigger goals that run for a whole Strix Pass season."
       />
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Zap className="size-4 text-primary" /> This week's power missions</CardTitle>
-            <CardDescription>{weekEnds ? `Ends ${formatDate(weekEnds, true)} (${formatRelative(weekEnds)})` : "None running"}</CardDescription>
+            <CardTitle className="flex items-center gap-2"><Zap className="size-4 text-primary" /> This season's power missions</CardTitle>
+            <CardDescription>{power.data?.active?.length === 0 ? "None running" : seasonEnds ? `Ends with the season, ${formatDate(seasonEnds, true)} (${formatRelative(seasonEnds)})` : "Running"}</CardDescription>
           </CardHeader>
           <CardContent>
             {power.isLoading ? <Skeleton className="h-40" /> : power.data.active.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No power missions this week.</p>
+              <p className="text-sm text-muted-foreground">No power missions this season.</p>
             ) : (
               <ul className="divide-y">{power.data.active.map((m) => <MissionRow key={m.id} mission={m} actions={actions} />)}</ul>
             )}
           </CardContent>
         </Card>
 
-        <NextWeek missions={power.data?.next} hasActive={(power.data?.active?.length ?? 0) > 0} actions={actions} isLoading={power.isLoading} />
+        <NextSeason missions={power.data?.next} startsAt={seasonEnds} hasActive={(power.data?.active?.length ?? 0) > 0} actions={actions} isLoading={power.isLoading} />
 
         <Card className="xl:col-span-2">
           <CardHeader>
@@ -107,7 +107,7 @@ const fromAction = (action) => ({
   objective_url: "",
 });
 
-function NextWeek({ missions = [], hasActive, actions, isLoading }) {
+function NextSeason({ missions = [], startsAt, hasActive, actions, isLoading }) {
   const canEdit = useCan("create_missions");
   const [draft, setDraft] = useState(null);
   const [save, { isLoading: saving }] = useSavePowerMissionsMutation();
@@ -127,7 +127,7 @@ function NextWeek({ missions = [], hasActive, actions, isLoading }) {
     }));
     try {
       await save({ missions: data, replaceNext: existing }).unwrap();
-      toast.success(existing ? "Next week's missions updated" : "Next week's missions queued");
+      toast.success(existing ? "Next season's missions updated" : hasActive ? "Next season's missions queued" : "Power missions started");
       setDraft(null);
     } catch {
       // toast from the store
@@ -137,16 +137,19 @@ function NextWeek({ missions = [], hasActive, actions, isLoading }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Next week's power missions</CardTitle>
+        <CardTitle>Next season's power missions</CardTitle>
         <CardDescription>
-          {existing ? "Start when this week ends." : hasActive ? "Nothing queued. Add missions so the next week isn't empty." : "Set missions to start a week now."}
-          {existing && " You can change each mission; the number of missions stays the same."}
+          {existing
+            ? `Start when this season ends${startsAt ? `, ${formatDate(startsAt, true)}` : ""}.`
+            : hasActive
+              ? "Nothing queued. Add missions so the next season isn't empty."
+              : "None running. Missions you set now start straight away and run to the end of this season."}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? <Skeleton className="h-40" /> : !rows ? (
           canEdit && actions.length > 0 ? (
-            <Button onClick={() => setDraft([fromAction(actions[0])])}><Plus /> Plan next week</Button>
+            <Button onClick={() => setDraft([fromAction(actions[0])])}><Plus /> {hasActive ? "Plan next season" : "Set power missions"}</Button>
           ) : (
             <p className="text-sm text-muted-foreground">Nothing queued.</p>
           )
@@ -169,7 +172,7 @@ function NextWeek({ missions = [], hasActive, actions, isLoading }) {
                       {actions.map((a) => <SelectItem key={a.slug} value={a.slug}>{a.slug.replaceAll("_", " ")}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  {!existing && rows.length > 1 && (
+                  {rows.length > 1 && (
                     <Button type="button" variant="ghost" size="icon-sm" aria-label={`Remove mission ${index + 1}`} onClick={() => setDraft(rows.filter((_, i) => i !== index))}>
                       <Trash2 />
                     </Button>
@@ -191,12 +194,10 @@ function NextWeek({ missions = [], hasActive, actions, isLoading }) {
               </div>
             ))}
             <div className="flex flex-wrap gap-2">
-              {!existing && (
-                <Button type="button" variant="outline" onClick={() => setDraft([...rows, fromAction(actions[0])])}><Plus /> Add mission</Button>
-              )}
+              <Button type="button" variant="outline" onClick={() => setDraft([...rows, fromAction(actions[0])])}><Plus /> Add mission</Button>
               <Button type="submit" disabled={saving || (!draft && existing)}>
                 {saving && <Loader2 className="animate-spin" />}
-                {existing ? "Save next week" : "Queue next week"}
+                {existing ? "Save next season" : hasActive ? "Queue next season" : "Start now"}
               </Button>
               {draft && (
                 <Button type="button" variant="ghost" onClick={() => setDraft(null)} disabled={saving}><RotateCcw /> Discard changes</Button>

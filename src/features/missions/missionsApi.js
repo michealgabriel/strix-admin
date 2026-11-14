@@ -7,6 +7,8 @@ const missionsApi = api.enhanceEndpoints({ addTagTypes: ["Missions"] }).injectEn
       transformResponse: (response) => ({
         active: response.data?.active_power_missions ?? [],
         next: response.data?.next_week_power_missions ?? [],
+        seasonEndsAt: response.data?.season_ends_at ?? null,
+        nextSeasonEndsAt: response.data?.next_season_ends_at ?? null,
       }),
       providesTags: ["Missions"],
     }),

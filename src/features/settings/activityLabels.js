@@ -9,7 +9,7 @@ const ACTIONS = [
   ["POST api/dailyrewards", "Queued a Daily Strix week"],
   ["PUT api/dailyrewards/next", "Edited next week's Daily Strix"],
   ["POST api/powermissions", "Queued power missions"],
-  ["PUT api/powermissions/next", "Edited next week's power missions"],
+  ["PUT api/powermissions/next", "Edited next season's power missions"],
   ["POST api/strixpass", "Queued a Strix Pass season"],
   ["PUT api/strixpass/next", "Edited the next Strix Pass season"],
   ["POST api/admin/epicclips/submissions/{id}/crown-winner", "Crowned clip #{id}"],
